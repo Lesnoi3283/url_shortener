@@ -27,10 +27,10 @@ func URLShortenerHandler(res http.ResponseWriter, req *http.Request) {
 		//db set
 		database := jm
 		//todo: Q почему он ругался на `database`, но пропустил `&database`
-		var urlStorage storages.UrlStorage = storages.UrlStorage{
-			Db: &database,
+		urlStorage := storages.URLStorage{
+			DB: &database,
 		}
-		var url entities.Url = entities.Url{
+		url := entities.URL{
 			Real:    string(str),
 			Storage: &urlStorage,
 		}
@@ -70,10 +70,10 @@ func URLShortenerHandler(res http.ResponseWriter, req *http.Request) {
 
 		//db set
 		database := jm
-		var urlStorage storages.UrlStorage = storages.UrlStorage{
-			Db: &database,
+		urlStorage := storages.URLStorage{
+			DB: &database,
 		}
-		var url entities.Url = entities.Url{
+		url := entities.URL{
 			Short:   shorted[1],
 			Storage: &urlStorage,
 		}

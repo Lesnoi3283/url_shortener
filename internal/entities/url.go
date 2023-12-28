@@ -1,13 +1,13 @@
 package entities
 
-type Url struct {
+type URL struct {
 	Real    string
 	Short   string
-	Storage UrlStorage
+	Storage URLStorageInterface
 }
 
-type UrlStorage interface {
-	Save(Url) error
-	Get(string) (Url, error)
+type URLStorageInterface interface {
+	Save(URL) error
+	Get(string) (URL, error)
 	//remove(Real) error
 }
