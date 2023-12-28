@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"github.com/Lesnoi3283/url_shortener/internal/entities"
 	"github.com/Lesnoi3283/url_shortener/internal/storages"
-	"github.com/Lesnoi3283/url_shortener/pkg/databases/redislocal"
+	"github.com/Lesnoi3283/url_shortener/pkg/databases/justamap"
 	"io"
 	"net/http"
 	"strings"
 )
+
+var jm justamap.JustAMap = justamap.JustAMap{Store: make(map[string]string)}
 
 func URLShortenerHandler(res http.ResponseWriter, req *http.Request) {
 	if req.Method == http.MethodPost {
@@ -23,7 +25,7 @@ func URLShortenerHandler(res http.ResponseWriter, req *http.Request) {
 		}
 
 		//db set
-		database := redislocal.NewRedis()
+		database := jm
 		//todo: Q почему он ругался на `database`, но пропустил `&database`
 		var urlStorage storages.UrlStorage = storages.UrlStorage{
 			Db: &database,
@@ -52,6 +54,7 @@ func URLShortenerHandler(res http.ResponseWriter, req *http.Request) {
 		//response making
 		res.Header().Set("Content-Type", "text/plain")
 		toRet := "http://localhost:8080/" + url.Short
+		res.WriteHeader(http.StatusCreated)
 		res.Write([]byte(toRet))
 
 		return
@@ -66,7 +69,7 @@ func URLShortenerHandler(res http.ResponseWriter, req *http.Request) {
 		}
 
 		//db set
-		database := redislocal.NewRedis()
+		database := jm
 		var urlStorage storages.UrlStorage = storages.UrlStorage{
 			Db: &database,
 		}

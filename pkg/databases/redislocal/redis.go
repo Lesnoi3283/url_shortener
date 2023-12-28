@@ -23,10 +23,6 @@ func NewRedis() Redis {
 	return red
 }
 
-//
-//Save(key string, val string) error
-//Get(key string) (string, error)
-
 func (r *Redis) Save(key string, val string) error {
 	status := r.Client.Set(context.Background(), key, val, time.Hour*24*31)
 	return status.Err()
