@@ -8,6 +8,6 @@ type Url struct {
 
 type UrlStorage interface {
 	Save(Url) error
-	Get(Url) (Url, error)
+	Get(string) (Url, error)
 	//remove(Real) error
 }

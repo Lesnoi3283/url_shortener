@@ -5,7 +5,7 @@ import (
 )
 
 type UrlStorage struct {
-	db DB
+	Db DB
 }
 
 type DB interface {
@@ -14,13 +14,14 @@ type DB interface {
 	//mb remove but i dunno if it is necessary
 }
 
-func (u UrlStorage) Save(url entities.Url) error {
-	err := u.db.Save(url.Short, url.Real)
+func (u *UrlStorage) Save(url entities.Url) error {
+	err := u.Db.Save(url.Short, url.Real)
 	return err
 }
 
-func (u UrlStorage) Get(url entities.Url) (entities.Url, error) {
-	str, err := u.db.Get(url.Short)
+func (u *UrlStorage) Get(short string) (url entities.Url, err error) {
+	str, err := u.Db.Get(short)
 	url.Real = str
+	url.Short = short
 	return url, err
 }

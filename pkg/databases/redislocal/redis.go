@@ -1,4 +1,4 @@
-package redis
+package redislocal
 
 import (
 	"context"
@@ -33,6 +33,6 @@ func (r *Redis) Save(key string, val string) error {
 }
 
 func (r *Redis) Get(key string) (string, error) {
-	str, err := r.Client.Get(context.Background(), key)
+	str, err := r.Client.Get(context.Background(), key).Result()
 	return str, err
 }
