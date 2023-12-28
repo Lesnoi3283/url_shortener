@@ -17,8 +17,7 @@ func NewRedis() Redis {
 		DB:       0,  // use default DB
 	})
 
-	var red Redis = Redis{}
-	red.Client = client
+	red := Redis{Client: client}
 
 	return red
 }
