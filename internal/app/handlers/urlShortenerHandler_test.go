@@ -31,6 +31,8 @@ func TestURLShortenerGETHandler(t *testing.T) {
 		recorder := httptest.NewRecorder()
 		URLShortenerHandler(recorder, req)
 		res := recorder.Result()
+		defer res.Body.Close()
+
 		require.Equal(t, tt.statusWant, res.StatusCode, tt.name)
 	}
 }
@@ -55,6 +57,9 @@ func TestURLShortenerPOSTHandler(t *testing.T) {
 		recorder := httptest.NewRecorder()
 		URLShortenerHandler(recorder, req)
 		res := recorder.Result()
+
+		defer res.Body.Close()
+
 		require.Equal(t, tt.statusWant, res.StatusCode, tt.name)
 	}
 }
