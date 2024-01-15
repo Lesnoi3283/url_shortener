@@ -60,13 +60,13 @@ func TestURLShortenerHandler(t *testing.T) {
 		if resp.StatusCode == http.StatusCreated {
 			//here we try to get a full url back
 			require.NotEmpty(t, resp.Body, tt.name)
-			shortedUrl, err := io.ReadAll(resp.Body)
+			shortedURL, err := io.ReadAll(resp.Body)
 			require.NoError(t, err, tt.name)
 
 			//we need to split it because server returns us smg like  "127.0.0.1:8080/qqqq", but our port can be different.
 			//so we need to get just `shorted url part` (for example "qqqq" from "127.0.0.1:8080/qqqq") from a full address
-			splittedUrl := strings.Split(string(shortedUrl), "/")
-			urlToAsk := ts.URL + "/" + splittedUrl[len(splittedUrl)-1]
+			splittedURL := strings.Split(string(shortedURL), "/")
+			urlToAsk := ts.URL + "/" + splittedURL[len(splittedURL)-1]
 
 			//to catch redirect
 			ts.Client().CheckRedirect = func(req *http.Request, via []*http.Request) error {
@@ -78,8 +78,9 @@ func TestURLShortenerHandler(t *testing.T) {
 			require.NoError(t, err, tt.name)
 
 			resp2, err := ts.Client().Do(req2)
-			defer resp2.Body.Close()
 			require.NoError(t, err, tt.name)
+			defer resp2.Body.Close()
+
 			assert.Equal(t, http.StatusTemporaryRedirect, resp2.StatusCode, tt.name)
 		}
 	}
