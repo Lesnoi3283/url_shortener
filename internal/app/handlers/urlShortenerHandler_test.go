@@ -1,65 +1,86 @@
 package handlers
 
 import (
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 )
 
-func TestURLShortenerGETHandler(t *testing.T) {
+func TestURLShortenerHandler(t *testing.T) {
+
 	tests := []struct {
-		name       string
-		query      string
-		statusWant int
+		name          string
+		query         string
+		method        string
+		reqBody       string
+		statusWant    int
+		wantEmptyBody bool
 	}{
 		{
-			name:       "URL doesnt exist",
-			query:      "/veryLongUrlWichShouldntExistIhopeForIt",
-			statusWant: http.StatusBadRequest,
+			name:          "Normal POST (should work)",
+			query:         "/",
+			method:        http.MethodPost,
+			statusWant:    http.StatusCreated,
+			reqBody:       "https://practicum.yandex.ru/",
+			wantEmptyBody: false,
 		},
 		{
-			name:       "Bad request",
-			query:      "/",
-			statusWant: http.StatusBadRequest,
+			name:          "URL doesnt exist",
+			query:         "/veryLongUrlWichShouldntExistIhopeForIt",
+			method:        http.MethodGet,
+			statusWant:    http.StatusBadRequest,
+			wantEmptyBody: true,
 		},
-	}
-
-	for _, tt := range tests {
-		req := httptest.NewRequest(http.MethodGet, tt.query, nil)
-		recorder := httptest.NewRecorder()
-		URLShortenerHandler(recorder, req)
-		res := recorder.Result()
-		defer res.Body.Close()
-
-		require.Equal(t, tt.statusWant, res.StatusCode, tt.name)
-	}
-}
-
-func TestURLShortenerPOSTHandler(t *testing.T) {
-	tests := []struct {
-		name       string
-		query      string
-		body       string
-		statusWant int
-	}{
 		{
-			name:       "Normal one",
-			query:      "/",
-			body:       "https://practicum.yandex.ru/",
-			statusWant: http.StatusCreated,
+			name:          "Method not allowed request (chi error)",
+			query:         "/",
+			method:        http.MethodGet,
+			statusWant:    http.StatusMethodNotAllowed,
+			wantEmptyBody: true,
 		},
 	}
 
+	ts := httptest.NewServer(MyRouter())
+
 	for _, tt := range tests {
-		req := httptest.NewRequest(http.MethodPost, tt.query, strings.NewReader(tt.body))
-		recorder := httptest.NewRecorder()
-		URLShortenerHandler(recorder, req)
-		res := recorder.Result()
+		req, err := http.NewRequest(tt.method, ts.URL+tt.query, strings.NewReader(tt.reqBody))
+		require.NoError(t, err, tt.name)
 
-		defer res.Body.Close()
+		resp, err := ts.Client().Do(req)
+		require.NoError(t, err, tt.name)
+		assert.Equal(t, tt.statusWant, resp.StatusCode, tt.name)
 
-		require.Equal(t, tt.statusWant, res.StatusCode, tt.name)
+		defer resp.Body.Close()
+
+		//redirect check
+		if resp.StatusCode == http.StatusCreated {
+			//here we try to get a full url back
+			require.NotEmpty(t, resp.Body, tt.name)
+			shortedUrl, err := io.ReadAll(resp.Body)
+			require.NoError(t, err, tt.name)
+
+			//we need to split it because server returns us smg like  "127.0.0.1:8080/qqqq", but our port can be different.
+			//so we need to get just `shorted url part` (for example "qqqq" from "127.0.0.1:8080/qqqq") from a full address
+			splittedUrl := strings.Split(string(shortedUrl), "/")
+			urlToAsk := ts.URL + "/" + splittedUrl[len(splittedUrl)-1]
+
+			//to catch redirect
+			ts.Client().CheckRedirect = func(req *http.Request, via []*http.Request) error {
+				assert.Equal(t, tt.reqBody, req.URL.String(), tt.name+" (in check redirect)")
+				return http.ErrUseLastResponse
+			}
+
+			req2, err := http.NewRequest(http.MethodGet, urlToAsk, nil)
+			require.NoError(t, err, tt.name)
+
+			resp2, err := ts.Client().Do(req2)
+			defer resp2.Body.Close()
+			require.NoError(t, err, tt.name)
+			assert.Equal(t, http.StatusTemporaryRedirect, resp2.StatusCode, tt.name)
+		}
 	}
 }
