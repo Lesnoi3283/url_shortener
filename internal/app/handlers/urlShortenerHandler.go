@@ -80,7 +80,7 @@ func URLShortenerHandler(res http.ResponseWriter, req *http.Request) {
 
 	//response making
 	res.Header().Set("Content-Type", "text/plain")
-	toRet := config.BaseAddress + url.Short
+	toRet := config.BaseAddress + "/" + url.Short
 	res.WriteHeader(http.StatusCreated)
 	res.Write([]byte(toRet))
 }
