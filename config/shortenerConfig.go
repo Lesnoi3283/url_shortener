@@ -1,4 +1,7 @@
 package config
 
-var DefaultShortAddress string = "http://localhost:8080/"
-var ServerAddress string = "localhost:8080"
+const DEFAULT_BASE_ADDRESS = "http://localhost:8080/"
+const DEFAULT_SERVER_ADDRESS = "localhost:8080"
+
+var BaseAddress string = DEFAULT_BASE_ADDRESS
+var ServerAddress string = DEFAULT_SERVER_ADDRESS
