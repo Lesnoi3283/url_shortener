@@ -5,6 +5,7 @@ go 1.21.3
 require (
 	github.com/go-chi/chi v1.5.5
 	github.com/redis/go-redis/v9 v9.3.1
+	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.4
 )
 

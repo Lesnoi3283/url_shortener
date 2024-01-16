@@ -3,6 +3,7 @@ package handlers
 import (
 	"crypto/sha256"
 	"fmt"
+	"github.com/Lesnoi3283/url_shortener/config"
 	"github.com/Lesnoi3283/url_shortener/internal/entities"
 	"github.com/Lesnoi3283/url_shortener/internal/storages"
 	"github.com/Lesnoi3283/url_shortener/pkg/databases/justamap"
@@ -79,7 +80,7 @@ func URLShortenerHandler(res http.ResponseWriter, req *http.Request) {
 
 	//response making
 	res.Header().Set("Content-Type", "text/plain")
-	toRet := "http://localhost:8080/" + url.Short
+	toRet := config.DefaultShortAddress + url.Short
 	res.WriteHeader(http.StatusCreated)
 	res.Write([]byte(toRet))
 }
