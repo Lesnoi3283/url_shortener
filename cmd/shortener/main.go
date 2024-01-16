@@ -10,7 +10,7 @@ import (
 
 func init() {
 	flag.StringVar(&config.ServerAddress, "a", "localhost:8080", "Address where server will work. Example: \"localhost:8080\".")
-	flag.StringVar(&config.DefaultShortAddress, "b", "http://localhost:8080/", "Base address before a shorted URL")
+	flag.StringVar(&config.DefaultShortAddress, "b", "http://localhost:8080", "Base address before a shorted URL")
 }
 
 func main() {
