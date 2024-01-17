@@ -1,6 +1,9 @@
 package handlers
 
 import (
+	"github.com/Lesnoi3283/url_shortener/config"
+	"github.com/Lesnoi3283/url_shortener/internal/storages"
+	"github.com/Lesnoi3283/url_shortener/pkg/databases/justamap"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io"
@@ -29,7 +32,7 @@ func TestURLShortenerHandler(t *testing.T) {
 			wantEmptyBody: false,
 		},
 		{
-			name:          "URL doesnt exist",
+			name:          "url doesnt exist",
 			query:         "/veryLongUrlWichShouldntExistIhopeForIt",
 			method:        http.MethodGet,
 			statusWant:    http.StatusBadRequest,
@@ -44,8 +47,15 @@ func TestURLShortenerHandler(t *testing.T) {
 		},
 	}
 
-	ts := httptest.NewServer(MyRouter())
+	//test server building
+	conf := config.Config{}
+	conf.Configurate()
+	URLStore := &storages.URLStorage{
+		DB: justamap.NewJustAMap(),
+	}
+	ts := httptest.NewServer(BuildRouter(conf, URLStore))
 
+	//tests run
 	for _, tt := range tests {
 		req, err := http.NewRequest(tt.method, ts.URL+tt.query, strings.NewReader(tt.reqBody))
 		require.NoError(t, err, tt.name)

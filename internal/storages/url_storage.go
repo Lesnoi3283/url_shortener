@@ -4,6 +4,17 @@ import (
 	"github.com/Lesnoi3283/url_shortener/internal/entities"
 )
 
+type URL struct {
+	Real  string
+	Short string
+}
+
+type URLStorageInterface interface {
+	Save(URL) error
+	Get(string) (URL, error)
+	//remove(Real) error
+}
+
 type URLStorage struct {
 	DB DBInterface
 }

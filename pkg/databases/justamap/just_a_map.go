@@ -6,8 +6,8 @@ type JustAMap struct {
 	Store map[string]string
 }
 
-func NewJustAMap() JustAMap {
-	jm := JustAMap{Store: make(map[string]string)}
+func NewJustAMap() *JustAMap {
+	jm := &JustAMap{Store: make(map[string]string)}
 	return jm
 }
 

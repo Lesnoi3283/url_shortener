@@ -1,32 +1,22 @@
 package main
 
 import (
-	"flag"
 	"github.com/Lesnoi3283/url_shortener/config"
 	"github.com/Lesnoi3283/url_shortener/internal/app/handlers"
+	"github.com/Lesnoi3283/url_shortener/internal/storages"
+	"github.com/Lesnoi3283/url_shortener/pkg/databases/justamap"
 	"log"
 	"net/http"
-	"os"
 )
 
-func init() {
-	flag.StringVar(&config.ServerAddress, "a", config.DefaultServerAddress, "Address where server will work. Example: \"localhost:8080\".")
-	flag.StringVar(&config.BaseAddress, "b", config.DefaultBaseAddress, "Base address before a shorted URL")
-}
-
 func main() {
+	conf := config.Config{}
+	conf.Configurate()
 
-	flag.Parse()
-	envServerAddress, wasFoundServerAddress := os.LookupEnv("SERVER_ADDRESS")
-	envBaseAddress, wasFoundBaseAddress := os.LookupEnv("BASE_URL")
-
-	if config.ServerAddress == config.DefaultServerAddress && wasFoundServerAddress {
-		config.ServerAddress = envServerAddress
-	}
-	if config.BaseAddress == config.DefaultBaseAddress && wasFoundBaseAddress {
-		config.BaseAddress = envBaseAddress
+	URLStore := &storages.URLStorage{
+		DB: justamap.NewJustAMap(),
 	}
 
-	r := handlers.MyRouter()
-	log.Fatal(http.ListenAndServe(config.ServerAddress, r))
+	r := handlers.BuildRouter(conf, URLStore)
+	log.Fatal(http.ListenAndServe(conf.ServerAddress, r))
 }

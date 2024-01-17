@@ -1,9 +1,8 @@
 package entities
 
 type URL struct {
-	Real    string
-	Short   string
-	Storage URLStorageInterface
+	Real  string
+	Short string
 }
 
 type URLStorageInterface interface {

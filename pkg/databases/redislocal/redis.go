@@ -10,14 +10,14 @@ type Redis struct {
 	Client *redis.Client
 }
 
-func NewRedis() Redis {
+func NewRedis() *Redis {
 	client := redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",
 		Password: "", // no password set
 		DB:       0,  // use default DB
 	})
 
-	red := Redis{Client: client}
+	red := &Redis{Client: client}
 
 	return red
 }
