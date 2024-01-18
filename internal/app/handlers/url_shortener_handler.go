@@ -4,15 +4,21 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"github.com/Lesnoi3283/url_shortener/config"
-	"github.com/Lesnoi3283/url_shortener/internal/entities"
+	"github.com/Lesnoi3283/url_shortener/internal/storages"
 	"github.com/go-chi/chi"
 	"io"
 	"log"
 	"net/http"
 )
 
+type URLStorageInterface interface {
+	Save(storages.URL) error
+	Get(string) (storages.URL, error)
+	//remove(Real) error
+}
+
 type ShortURLRedirectHandler struct {
-	URLStorage entities.URLStorageInterface
+	URLStorage URLStorageInterface
 }
 
 func (h *ShortURLRedirectHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
@@ -34,7 +40,7 @@ func (h *ShortURLRedirectHandler) ServeHTTP(res http.ResponseWriter, req *http.R
 
 type URLShortenerHandler struct {
 	Conf       config.Config
-	URLStorage entities.URLStorageInterface
+	URLStorage URLStorageInterface
 }
 
 func (h *URLShortenerHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
@@ -46,7 +52,7 @@ func (h *URLShortenerHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	url := entities.URL{
+	url := storages.URL{
 		Real: string(str),
 	}
 

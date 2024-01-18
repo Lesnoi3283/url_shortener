@@ -1,18 +1,8 @@
 package storages
 
-import (
-	"github.com/Lesnoi3283/url_shortener/internal/entities"
-)
-
 type URL struct {
 	Real  string
 	Short string
-}
-
-type URLStorageInterface interface {
-	Save(URL) error
-	Get(string) (URL, error)
-	//remove(Real) error
 }
 
 type URLStorage struct {
@@ -25,12 +15,12 @@ type DBInterface interface {
 	//mb remove but i dunno if it is necessary
 }
 
-func (u *URLStorage) Save(url entities.URL) error {
+func (u *URLStorage) Save(url URL) error {
 	err := u.DB.Save(url.Short, url.Real)
 	return err
 }
 
-func (u *URLStorage) Get(short string) (url entities.URL, err error) {
+func (u *URLStorage) Get(short string) (url URL, err error) {
 	str, err := u.DB.Get(short)
 	url.Real = str
 	url.Short = short

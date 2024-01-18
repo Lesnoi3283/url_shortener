@@ -2,11 +2,10 @@ package handlers
 
 import (
 	"github.com/Lesnoi3283/url_shortener/config"
-	"github.com/Lesnoi3283/url_shortener/internal/entities"
 	"github.com/go-chi/chi"
 )
 
-func BuildRouter(conf config.Config, store entities.URLStorageInterface) chi.Router {
+func BuildRouter(conf config.Config, store URLStorageInterface) chi.Router {
 	r := chi.NewRouter()
 
 	//handlers building
