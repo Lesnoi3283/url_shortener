@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"github.com/Lesnoi3283/url_shortener/config"
-	"github.com/Lesnoi3283/url_shortener/internal/storages"
 	"github.com/go-chi/chi"
 	"io"
 	"log"
@@ -12,8 +11,8 @@ import (
 )
 
 type URLStorageInterface interface {
-	Save(storages.URL) error
-	Get(string) (storages.URL, error)
+	Save(short string, full string) error
+	Get(short string) (full string, err error)
 	//remove(Real) error
 }
 
@@ -26,15 +25,15 @@ func (h *ShortURLRedirectHandler) ServeHTTP(res http.ResponseWriter, req *http.R
 	shorted := chi.URLParam(req, "url")
 
 	//reading from db
-	url, err := h.URLStorage.Get(shorted)
+	fullURL, err := h.URLStorage.Get(shorted)
 	if err != nil {
 		res.WriteHeader(http.StatusBadRequest)
-		log.Default().Printf("url was not found: %v\n", err)
+		log.Default().Printf("fullURL was not found: %v\n", err)
 		return
 	}
 
 	//response preparing
-	res.Header().Set("Location", url.Real)
+	res.Header().Set("Location", fullURL)
 	res.WriteHeader(http.StatusTemporaryRedirect)
 }
 
@@ -52,19 +51,16 @@ func (h *URLShortenerHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	url := storages.URL{
-		Real: string(str),
-	}
+	realURL := string(str)
 
 	//url shorting
 	hasher := sha256.New()
 	hasher.Write(str)
-	strShort := fmt.Sprintf("%x", hasher.Sum(nil))
-	strShort = strShort[:16]
-	url.Short = strShort
+	urlShort := fmt.Sprintf("%x", hasher.Sum(nil))
+	urlShort = urlShort[:16]
 
 	//url saving
-	err = h.URLStorage.Save(url)
+	err = h.URLStorage.Save(urlShort, realURL)
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		log.Default().Println("Error while saving to db")
@@ -74,7 +70,7 @@ func (h *URLShortenerHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 
 	//response making
 	res.Header().Set("Content-Type", "text/plain")
-	toRet := h.Conf.BaseAddress + "/" + url.Short
+	toRet := h.Conf.BaseAddress + "/" + urlShort
 	res.WriteHeader(http.StatusCreated)
 	res.Write([]byte(toRet))
 }

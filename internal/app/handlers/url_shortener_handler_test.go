@@ -2,11 +2,12 @@ package handlers
 
 import (
 	"github.com/Lesnoi3283/url_shortener/config"
-	"github.com/Lesnoi3283/url_shortener/internal/storages"
 	"github.com/Lesnoi3283/url_shortener/pkg/databases/justamap"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 	"io"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -50,10 +51,21 @@ func TestURLShortenerHandler(t *testing.T) {
 	//test server building
 	conf := config.Config{}
 	conf.Configurate()
-	URLStore := &storages.URLStorage{
-		DB: justamap.NewJustAMap(),
+	URLStore := justamap.NewJustAMap()
+	logLevel, err := zap.ParseAtomicLevel(conf.LogLevel)
+	if err != nil {
+		log.Fatalf("logger was not started, err: %v", err)
 	}
-	ts := httptest.NewServer(BuildRouter(conf, URLStore))
+
+	zCfg := zap.NewProductionConfig()
+	zCfg.Level = logLevel
+	zapLogger, err := zCfg.Build()
+	if err != nil {
+		log.Fatalf("logger was not started, err: %v", err)
+	}
+	defer zapLogger.Sync()
+	sugar := zapLogger.Sugar()
+	ts := httptest.NewServer(BuildRouter(conf, URLStore, *sugar))
 
 	//tests run
 	for _, tt := range tests {
