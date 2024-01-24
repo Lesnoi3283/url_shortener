@@ -18,7 +18,7 @@ type Config struct {
 func (c *Config) Configurate() {
 	flag.StringVar(&(c.ServerAddress), "a", DefaultServerAddress, "Address where server will work. Example: \"localhost:8080\".")
 	flag.StringVar(&(c.BaseAddress), "b", DefaultBaseAddress, "Base address before a shorted url")
-	flag.StringVar(&(c.BaseAddress), "l", DefaultLogLevel, "Log level")
+	flag.StringVar(&(c.LogLevel), "l", DefaultLogLevel, "Log level")
 	flag.Parse()
 
 	envServerAddress, wasFoundServerAddress := os.LookupEnv("SERVER_ADDRESS")
