@@ -27,7 +27,7 @@ func TestURLShortenHandler_ServeHTTP(t *testing.T) {
 	}{
 		{
 			name:          "Normal POST (should work)",
-			query:         "/shorten",
+			query:         "/api/shorten",
 			method:        http.MethodPost,
 			statusWant:    http.StatusCreated,
 			reqBody:       "{\"url\":\"https://practicum.yandex.ru\"}",

@@ -25,7 +25,7 @@ func BuildRouter(conf config.Config, store URLStorageInterface, logger zap.Sugar
 	//handlers setting
 	r.Post("/", middlewares.LoggerMW(&URLShortener, logger))
 	r.Get("/{url}", middlewares.LoggerMW(&shortURLRedirect, logger))
-	r.Post("/shorten", middlewares.LoggerMW(&shortener, logger))
+	r.Post("/api/shorten", middlewares.LoggerMW(&shortener, logger))
 
 	return r
 }
