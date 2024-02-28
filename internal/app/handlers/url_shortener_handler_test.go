@@ -49,8 +49,11 @@ func TestURLShortenerHandler(t *testing.T) {
 	}
 
 	//test server building
-	conf := config.Config{}
-	conf.Configurate()
+	conf := config.Config{
+		BaseAddress:   "http://localhost:8080",
+		ServerAddress: "localhost:8080",
+		LogLevel:      "info",
+	}
 	URLStore := justamap.NewJustAMap()
 	logLevel, err := zap.ParseAtomicLevel(conf.LogLevel)
 	if err != nil {

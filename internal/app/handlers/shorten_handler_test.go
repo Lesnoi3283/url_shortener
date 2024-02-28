@@ -36,8 +36,11 @@ func TestURLShortenHandler_ServeHTTP(t *testing.T) {
 	}
 
 	//test server building
-	conf := config.Config{}
-	conf.Configurate()
+	conf := config.Config{
+		BaseAddress:   "http://localhost:8080",
+		ServerAddress: "localhost:8080",
+		LogLevel:      "info",
+	}
 	URLStore := justamap.NewJustAMap()
 	logLevel, err := zap.ParseAtomicLevel(conf.LogLevel)
 	if err != nil {
@@ -67,7 +70,6 @@ func TestURLShortenHandler_ServeHTTP(t *testing.T) {
 
 		//redirect check
 		if resp.StatusCode == http.StatusCreated {
-			//here we try to get a full url back
 			require.NotEmpty(t, resp.Body, tt.name)
 			response, err := io.ReadAll(resp.Body)
 			require.NoError(t, err, tt.name)
