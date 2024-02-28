@@ -24,7 +24,7 @@ func (h *shortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 
 	//unmarshalling JSON
 	realURL := struct {
-		val string `json:"url"`
+		Val string `json:"url"`
 	}{}
 
 	err = json.Unmarshal(str, &realURL)
