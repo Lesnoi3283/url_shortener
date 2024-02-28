@@ -40,7 +40,7 @@ func (h *shortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	urlShort = urlShort[:16]
 
 	//url saving
-	err = h.URLStorage.Save(urlShort, realURL.val)
+	err = h.URLStorage.Save(urlShort, realURL.Val)
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		log.Default().Println("Error while saving to db")
