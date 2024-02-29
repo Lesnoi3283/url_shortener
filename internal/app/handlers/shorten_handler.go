@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"github.com/Lesnoi3283/url_shortener/config"
 	"io"
 	"log"
 	"net/http"
@@ -11,11 +12,12 @@ import (
 
 type shortenHandler struct {
 	URLStorage URLStorageInterface
+	Conf       config.Config
 }
 
 func (h *shortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	//read request params
-	str, err := io.ReadAll(req.Body)
+	bodyBytes, err := io.ReadAll(req.Body)
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		log.Default().Println("Error while reading reqBody")
@@ -27,7 +29,7 @@ func (h *shortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		Val string `json:"url"`
 	}{}
 
-	err = json.Unmarshal(str, &realURL)
+	err = json.Unmarshal(bodyBytes, &realURL)
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		log.Default().Println("Error during unmarshalling JSON")
@@ -35,7 +37,7 @@ func (h *shortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 
 	//url shorting
 	hasher := sha256.New()
-	hasher.Write(str)
+	hasher.Write(bodyBytes)
 	urlShort := fmt.Sprintf("%x", hasher.Sum(nil))
 	urlShort = urlShort[:16]
 
@@ -52,7 +54,7 @@ func (h *shortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	responce := struct {
 		Result string `json:"result"`
 	}{
-		Result: urlShort,
+		Result: h.Conf.BaseAddress + "/" + urlShort,
 	}
 
 	jsonResponce, err := json.Marshal(responce)
