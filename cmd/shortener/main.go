@@ -23,6 +23,7 @@ func main() {
 		log.Fatalf("logger was not started, err: %v", err)
 	}
 
+	//config set
 	zCfg := zap.NewProductionConfig()
 	zCfg.Level = logLevel
 	zapLogger, err := zCfg.Build()
