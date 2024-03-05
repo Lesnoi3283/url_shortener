@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/Lesnoi3283/url_shortener/config"
 	"github.com/Lesnoi3283/url_shortener/internal/app/handlers"
+	"github.com/Lesnoi3283/url_shortener/pkg/databases/jsonfilestorage"
 	"github.com/Lesnoi3283/url_shortener/pkg/databases/justamap"
 	"go.uber.org/zap"
 	"log"
@@ -15,7 +16,12 @@ func main() {
 	conf.Configurate()
 
 	//storages set
-	URLStore := justamap.NewJustAMap()
+	var URLStore handlers.URLStorageInterface
+	if conf.FileStoragePath == "" {
+		URLStore = justamap.NewJustAMap()
+	} else {
+		URLStore = jsonfilestorage.NewJSONFileStorage(conf.FileStoragePath)
+	}
 
 	//logger set
 	logLevel, err := zap.ParseAtomicLevel(conf.LogLevel)
