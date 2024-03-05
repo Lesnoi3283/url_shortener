@@ -9,14 +9,14 @@ import (
 )
 
 type data struct {
-	Id  int    `json:"id"`
+	ID  int    `json:"id"`
 	Key string `json:"key"`
 	Val string `json:"val"`
 }
 
 type JSONFileStorage struct {
 	Path   string
-	lastId int
+	lastID int
 	mutex  sync.Mutex
 }
 
@@ -31,15 +31,15 @@ func (j *JSONFileStorage) Save(key string, val string) error {
 
 	// Open file
 	file, err := os.OpenFile(j.Path, (os.O_RDWR | os.O_APPEND | os.O_CREATE), 0666)
-	defer file.Close()
 	if err != nil {
 		return err
 	}
+	defer file.Close()
 
 	//Find last id
 	scanner := bufio.NewScanner(file)
 
-	if j.lastId == 0 {
+	if j.lastID == 0 {
 		lastLine := ""
 		for scanner.Scan() {
 			lastLine = scanner.Text()
@@ -50,12 +50,12 @@ func (j *JSONFileStorage) Save(key string, val string) error {
 			if err != nil {
 				return err
 			}
-			j.lastId = lastData.Id
+			j.lastID = lastData.ID
 		}
 	}
 
 	newData := data{
-		Id:  j.lastId + 1,
+		ID:  j.lastID + 1,
 		Key: key,
 		Val: val,
 	}
@@ -81,10 +81,10 @@ func (j *JSONFileStorage) Get(key string) (string, error) {
 	defer j.mutex.Unlock()
 
 	file, err := os.Open(j.Path)
-	defer file.Close()
 	if err != nil {
 		return "", err
 	}
+	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
 
