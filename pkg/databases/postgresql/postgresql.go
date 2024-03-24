@@ -2,7 +2,6 @@ package postgresql
 
 import (
 	"database/sql"
-	"fmt"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
@@ -15,8 +14,7 @@ func (p *Postgresql) Ping() error {
 }
 
 func NewPostgresql(connStr string) (Postgresql, error) {
-	ps := fmt.Sprintf(connStr)
-	db, err := sql.Open("pgx", ps)
+	db, err := sql.Open("pgx", connStr)
 
 	toRet := Postgresql{
 		store: db,
