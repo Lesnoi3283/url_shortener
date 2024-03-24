@@ -7,7 +7,8 @@ import (
 	"go.uber.org/zap"
 )
 
-func BuildRouter(conf config.Config, store URLStorageInterface, logger zap.SugaredLogger) chi.Router {
+// Я точно правильно передаю конф, логгер, бдшки? Слишком много аргументов у функции
+func BuildRouter(conf config.Config, store URLStorageInterface, logger zap.SugaredLogger, db DBInterface) chi.Router {
 	r := chi.NewRouter()
 
 	//handlers building
@@ -22,11 +23,15 @@ func BuildRouter(conf config.Config, store URLStorageInterface, logger zap.Sugar
 		Conf:       conf,
 		URLStorage: store,
 	}
+	pingDB := pingDBHandler{
+		db: db,
+	}
 
 	//handlers setting
 	r.Post("/", middlewares.LoggerMW(middlewares.CompressionMW(&URLShortener, logger), logger))
 	r.Get("/{url}", middlewares.LoggerMW(middlewares.CompressionMW(&shortURLRedirect, logger), logger))
 	r.Post("/api/shorten", middlewares.LoggerMW(middlewares.CompressionMW(&shortener, logger), logger))
+	r.Get("/ping", middlewares.LoggerMW(middlewares.CompressionMW(&pingDB, logger), logger))
 
 	return r
 }
