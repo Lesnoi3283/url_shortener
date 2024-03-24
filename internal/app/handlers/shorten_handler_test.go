@@ -3,7 +3,9 @@ package handlers
 import (
 	"encoding/json"
 	"github.com/Lesnoi3283/url_shortener/config"
+	"github.com/Lesnoi3283/url_shortener/internal/app/handlers/mocks"
 	"github.com/Lesnoi3283/url_shortener/pkg/databases/justamap"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -55,7 +57,9 @@ func TestURLShortenHandler_ServeHTTP(t *testing.T) {
 	}
 	defer zapLogger.Sync()
 	sugar := zapLogger.Sugar()
-	ts := httptest.NewServer(BuildRouter(conf, URLStore, *sugar))
+	mockController := gomock.NewController(t)
+	db := mocks.NewMockDBInterface(mockController)
+	ts := httptest.NewServer(BuildRouter(conf, URLStore, *sugar, db))
 
 	//tests run
 	for _, tt := range tests {

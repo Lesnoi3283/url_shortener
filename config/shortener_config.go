@@ -9,12 +9,14 @@ const DefaultBaseAddress = "http://localhost:8080"
 const DefaultServerAddress = "localhost:8080"
 const DefaultLogLevel = "info"
 const DefaultFileStoragePath = "/tmp/short-url-db.json"
+const DefaultDBConnectionString = "host=localhost user=yaurlshortener password=123 dbname=urlshortenerdb sslmode=disable"
 
 type Config struct {
 	BaseAddress     string
 	ServerAddress   string
 	LogLevel        string
 	FileStoragePath string
+	DBConnString    string
 }
 
 func (c *Config) Configurate() {
@@ -22,12 +24,14 @@ func (c *Config) Configurate() {
 	flag.StringVar(&(c.BaseAddress), "b", DefaultBaseAddress, "Base address before a shorted url")
 	flag.StringVar(&(c.LogLevel), "l", DefaultLogLevel, "Log level")
 	flag.StringVar(&(c.FileStoragePath), "f", DefaultFileStoragePath, "File storage path")
+	flag.StringVar(&(c.DBConnString), "d", DefaultDBConnectionString, "DB connection string")
 	flag.Parse()
 
 	envServerAddress, wasFoundServerAddress := os.LookupEnv("SERVER_ADDRESS")
 	envBaseAddress, wasFoundBaseAddress := os.LookupEnv("BASE_URL")
 	envLogLevel, wasFoundLogLevel := os.LookupEnv("LOG_LEVEL")
 	envFileStoragePath, wasFoundFileStoragePath := os.LookupEnv("FILE_STORAGE_PATH")
+	envDBConnString, wasFoundDBConnString := os.LookupEnv("DATABASE_DSN")
 
 	if c.ServerAddress == DefaultServerAddress && wasFoundServerAddress {
 		c.ServerAddress = envServerAddress
@@ -40,5 +44,9 @@ func (c *Config) Configurate() {
 	}
 	if wasFoundFileStoragePath {
 		c.FileStoragePath = envFileStoragePath
-	} //`else` - flag value (it has been already set)
+	}
+	if wasFoundDBConnString {
+		c.DBConnString = envDBConnString
+	}
+	//`else` - flag value (it has been already set)
 }

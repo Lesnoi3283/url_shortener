@@ -5,6 +5,7 @@ import (
 	"github.com/Lesnoi3283/url_shortener/internal/app/handlers"
 	"github.com/Lesnoi3283/url_shortener/pkg/databases/jsonfilestorage"
 	"github.com/Lesnoi3283/url_shortener/pkg/databases/justamap"
+	"github.com/Lesnoi3283/url_shortener/pkg/databases/postgresql"
 	"go.uber.org/zap"
 	"log"
 	"net/http"
@@ -38,7 +39,13 @@ func main() {
 	}
 	sugar := zapLogger.Sugar()
 
+	//db set
+	db, err := postgresql.NewPostgresql(conf.DBConnString)
+	if err != nil {
+		log.Printf("db was not started, err: %v", err)
+	}
+
 	//server building
-	r := handlers.BuildRouter(conf, URLStore, *sugar)
+	r := handlers.BuildRouter(conf, URLStore, *sugar, &db)
 	log.Fatal(http.ListenAndServe(conf.ServerAddress, r))
 }
