@@ -22,6 +22,8 @@ func NewRedis() *Redis {
 	return red
 }
 
+//todo: SaveBatch()
+
 func (r *Redis) Save(ctx context.Context, key string, val string) error {
 	status := r.Client.Set(ctx, key, val, time.Hour*24*31)
 	return status.Err()

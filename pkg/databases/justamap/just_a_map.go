@@ -3,6 +3,7 @@ package justamap
 import (
 	"context"
 	"fmt"
+	"github.com/Lesnoi3283/url_shortener/internal/app/handlers"
 )
 
 type JustAMap struct {
@@ -16,6 +17,16 @@ func NewJustAMap() *JustAMap {
 
 func (r *JustAMap) Save(ctx context.Context, key string, val string) error {
 	r.Store[key] = val
+	return nil
+}
+
+func (r *JustAMap) SaveBatch(ctx context.Context, urls []handlers.URL) error {
+	for _, url := range urls {
+		err := r.Save(ctx, url.Short, url.Long)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

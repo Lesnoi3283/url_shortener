@@ -35,6 +35,7 @@ func (h *shortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		log.Default().Println("Error during unmarshalling JSON")
+		return
 	}
 
 	//url shorting

@@ -13,6 +13,7 @@ import (
 
 type URLStorageInterface interface {
 	Save(ctx context.Context, short string, full string) error
+	SaveBatch(ctx context.Context, urls []URL) error
 	Get(ctx context.Context, short string) (full string, err error)
 	//remove(Real) error
 }

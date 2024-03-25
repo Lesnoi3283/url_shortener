@@ -3,7 +3,7 @@ package postgresql
 import (
 	"context"
 	"database/sql"
-	"fmt"
+	"github.com/Lesnoi3283/url_shortener/internal/app/handlers"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
@@ -27,17 +27,35 @@ func NewPostgresql(connStr string) (*Postgresql, error) {
 	return toRet, err
 }
 
+// Хорошая ли идея использовать тут скомпилированные запросы? В NewPostgresql их создать,
+// в структуре постгрес сохранить и использовать в Save и Get. Потокобезопасно ли это?
 func (p *Postgresql) Save(ctx context.Context, short string, full string) error {
 	query := "INSERT INTO urls (long, short) VALUES ($1, $2);"
 
-	ping := p.store == nil
-	fmt.Print(ping)
 	_, err := p.store.ExecContext(ctx, query, full, short)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (p *Postgresql) SaveBatch(ctx context.Context, urls []handlers.URL) error {
+	tx, err := p.store.Begin()
+	if err != nil {
+		return err
+	}
+	query := "INSERT INTO urls (long, short) VALUES ($1, $2);"
+
+	for _, url := range urls {
+		_, err = tx.ExecContext(ctx, query, url.Long, url.Short)
+		if err != nil {
+			tx.Rollback()
+		}
+	}
+
+	err = tx.Commit()
+	return err
 }
 
 func (p *Postgresql) Get(ctx context.Context, short string) (full string, err error) {
