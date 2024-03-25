@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
@@ -11,6 +12,7 @@ import (
 )
 
 type shortenHandler struct {
+	ctx        context.Context
 	URLStorage URLStorageInterface
 	Conf       config.Config
 }
@@ -42,7 +44,7 @@ func (h *shortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	urlShort = urlShort[:16]
 
 	//url saving
-	err = h.URLStorage.Save(urlShort, realURL.Val)
+	err = h.URLStorage.Save(h.ctx, urlShort, realURL.Val)
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		log.Default().Println("Error while saving to db")

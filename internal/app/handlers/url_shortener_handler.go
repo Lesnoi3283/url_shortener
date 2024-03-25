@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"crypto/sha256"
 	"fmt"
 	"github.com/Lesnoi3283/url_shortener/config"
@@ -11,12 +12,13 @@ import (
 )
 
 type URLStorageInterface interface {
-	Save(short string, full string) error
-	Get(short string) (full string, err error)
+	Save(ctx context.Context, short string, full string) error
+	Get(ctx context.Context, short string) (full string, err error)
 	//remove(Real) error
 }
 
 type ShortURLRedirectHandler struct {
+	ctx        context.Context
 	URLStorage URLStorageInterface
 }
 
@@ -25,7 +27,7 @@ func (h *ShortURLRedirectHandler) ServeHTTP(res http.ResponseWriter, req *http.R
 	shorted := chi.URLParam(req, "url")
 
 	//reading from db
-	fullURL, err := h.URLStorage.Get(shorted)
+	fullURL, err := h.URLStorage.Get(h.ctx, shorted)
 	if err != nil {
 		res.WriteHeader(http.StatusBadRequest)
 		log.Default().Printf("fullURL was not found: %v\n", err)
@@ -38,6 +40,7 @@ func (h *ShortURLRedirectHandler) ServeHTTP(res http.ResponseWriter, req *http.R
 }
 
 type URLShortenerHandler struct {
+	ctx        context.Context
 	Conf       config.Config
 	URLStorage URLStorageInterface
 }
@@ -60,7 +63,7 @@ func (h *URLShortenerHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 	urlShort = urlShort[:16]
 
 	//url saving
-	err = h.URLStorage.Save(urlShort, realURL)
+	err = h.URLStorage.Save(h.ctx, urlShort, realURL)
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		log.Default().Println("Error while saving to db")

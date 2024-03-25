@@ -9,7 +9,7 @@ const DefaultBaseAddress = "http://localhost:8080"
 const DefaultServerAddress = "localhost:8080"
 const DefaultLogLevel = "info"
 const DefaultFileStoragePath = "/tmp/short-url-db.json"
-const DefaultDBConnectionString = "host=localhost user=yaurlshortener password=123 dbname=urlshortenerdb sslmode=disable"
+const DefaultDBConnectionString = ""
 
 type Config struct {
 	BaseAddress     string
