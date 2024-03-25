@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Lesnoi3283/url_shortener/config"
+	"github.com/Lesnoi3283/url_shortener/internal/app/entities"
 	"io"
 	"log"
 	"net/http"
@@ -16,11 +17,6 @@ type shortenBatchHandler struct {
 	ctx        context.Context
 	URLStorage URLStorageInterface
 	Conf       config.Config
-}
-
-type URL struct {
-	Short string
-	Long  string
 }
 
 func (h *shortenBatchHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
@@ -51,7 +47,7 @@ func (h *shortenBatchHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 		ShortURL      string `json:"short_url"`
 	}
 
-	URLsToSave := make([]URL, 0)
+	URLsToSave := make([]entities.URL, 0)
 	URLsToReturn := make([]URLShorten, 0)
 
 	for i, url := range URLsGot {
@@ -61,7 +57,7 @@ func (h *shortenBatchHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 		urlShort := fmt.Sprintf("%x", hasher.Sum(nil))
 		urlShort = urlShort[:16]
 
-		URLsToSave = append(URLsToSave, URL{
+		URLsToSave = append(URLsToSave, entities.URL{
 			Short: urlShort,
 			Long:  url.OriginalURL,
 		})

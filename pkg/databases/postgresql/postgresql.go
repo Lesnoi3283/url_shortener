@@ -3,7 +3,7 @@ package postgresql
 import (
 	"context"
 	"database/sql"
-	"github.com/Lesnoi3283/url_shortener/internal/app/handlers"
+	"github.com/Lesnoi3283/url_shortener/internal/app/entities"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
@@ -40,7 +40,7 @@ func (p *Postgresql) Save(ctx context.Context, short string, full string) error 
 	return nil
 }
 
-func (p *Postgresql) SaveBatch(ctx context.Context, urls []handlers.URL) error {
+func (p *Postgresql) SaveBatch(ctx context.Context, urls []entities.URL) error {
 	tx, err := p.store.Begin()
 	if err != nil {
 		return err

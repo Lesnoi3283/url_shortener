@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"github.com/Lesnoi3283/url_shortener/config"
+	"github.com/Lesnoi3283/url_shortener/internal/app/entities"
 	"github.com/go-chi/chi"
 	"io"
 	"log"
@@ -13,7 +14,7 @@ import (
 
 type URLStorageInterface interface {
 	Save(ctx context.Context, short string, full string) error
-	SaveBatch(ctx context.Context, urls []URL) error
+	SaveBatch(ctx context.Context, urls []entities.URL) error
 	Get(ctx context.Context, short string) (full string, err error)
 	//remove(Real) error
 }

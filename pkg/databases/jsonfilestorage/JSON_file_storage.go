@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/Lesnoi3283/url_shortener/internal/app/handlers"
+	"github.com/Lesnoi3283/url_shortener/internal/app/entities"
 	"os"
 	"sync"
 )
@@ -78,7 +78,7 @@ func (j *JSONFileStorage) Save(ctx context.Context, key string, val string) erro
 	return nil
 }
 
-func (j *JSONFileStorage) SaveBatch(ctx context.Context, urls []handlers.URL) error {
+func (j *JSONFileStorage) SaveBatch(ctx context.Context, urls []entities.URL) error {
 	j.mutex.Lock()
 	defer j.mutex.Unlock()
 
