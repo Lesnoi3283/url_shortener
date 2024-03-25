@@ -10,7 +10,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strconv"
 )
 
 type shortenBatchHandler struct {
@@ -29,7 +28,7 @@ func (h *shortenBatchHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 	}
 
 	type URLGot struct {
-		CorrelationId string `json:"correlation_id"`
+		CorrelationID string `json:"correlation_id"`
 		OriginalURL   string `json:"original_url"`
 	}
 
@@ -43,7 +42,7 @@ func (h *shortenBatchHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 	}
 
 	type URLShorten struct {
-		CorrelationId string `json:"correlation_id"`
+		CorrelationID string `json:"correlation_id"`
 		ShortURL      string `json:"short_url"`
 	}
 
@@ -62,7 +61,7 @@ func (h *shortenBatchHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 			Long:  url.OriginalURL,
 		})
 		URLsToReturn = append(URLsToReturn, URLShorten{
-			CorrelationId: strconv.Itoa(i),
+			CorrelationID: URLsGot[i].CorrelationID,
 			ShortURL:      urlShort,
 		})
 	}
