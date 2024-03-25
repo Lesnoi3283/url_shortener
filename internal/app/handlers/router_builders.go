@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"github.com/Lesnoi3283/url_shortener/config"
 	"github.com/Lesnoi3283/url_shortener/internal/app/middlewares"
 	"github.com/go-chi/chi"
@@ -11,15 +12,19 @@ import (
 func BuildRouter(conf config.Config, store URLStorageInterface, logger zap.SugaredLogger, db DBInterface) chi.Router {
 	r := chi.NewRouter()
 
+	//где лучше создавать контекст?
 	//handlers building
 	URLShortener := URLShortenerHandler{
+		ctx:        context.Background(),
 		Conf:       conf,
 		URLStorage: store,
 	}
 	shortURLRedirect := ShortURLRedirectHandler{
+		ctx:        context.Background(),
 		URLStorage: store,
 	}
 	shortener := shortenHandler{
+		ctx:        context.Background(),
 		Conf:       conf,
 		URLStorage: store,
 	}
