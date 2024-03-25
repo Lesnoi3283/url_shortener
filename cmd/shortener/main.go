@@ -5,6 +5,7 @@ import (
 	"github.com/Lesnoi3283/url_shortener/internal/app/handlers"
 	"github.com/Lesnoi3283/url_shortener/pkg/databases/jsonfilestorage"
 	"github.com/Lesnoi3283/url_shortener/pkg/databases/justamap"
+	"github.com/Lesnoi3283/url_shortener/pkg/databases/postgresql"
 	"go.uber.org/zap"
 	"log"
 	"net/http"
@@ -17,10 +18,16 @@ func main() {
 
 	//storages set
 	var URLStore handlers.URLStorageInterface
-	if conf.FileStoragePath == "" {
-		URLStore = justamap.NewJustAMap()
-	} else {
+	if conf.DBConnString != "" {
+		var err error
+		URLStore, err = postgresql.NewPostgresql(conf.DBConnString)
+		if err != nil {
+			log.Fatalf("Problem with starting postgresql: %v", err.Error())
+		}
+	} else if conf.FileStoragePath != "" {
 		URLStore = jsonfilestorage.NewJSONFileStorage(conf.FileStoragePath)
+	} else {
+		URLStore = justamap.NewJustAMap()
 	}
 
 	//logger set
@@ -38,7 +45,17 @@ func main() {
 	}
 	sugar := zapLogger.Sugar()
 
+	//db set
+	db, err := postgresql.NewPostgresql(conf.DBConnString)
+	if err != nil {
+		log.Printf("db was not started, err: %v", err)
+	} else {
+		defer db.Close()
+	}
+
+	//Я передаю отдельно дб для реализации ендпоинта GET (ping),
+	//который должен пинговать именно постгрес (по требованию задания)
 	//server building
-	r := handlers.BuildRouter(conf, URLStore, *sugar)
+	r := handlers.BuildRouter(conf, URLStore, *sugar, db)
 	log.Fatal(http.ListenAndServe(conf.ServerAddress, r))
 }

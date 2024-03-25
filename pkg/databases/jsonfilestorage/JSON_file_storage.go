@@ -2,6 +2,7 @@ package jsonfilestorage
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -25,7 +26,7 @@ func NewJSONFileStorage(path string) *JSONFileStorage {
 	return toRet
 }
 
-func (j *JSONFileStorage) Save(key string, val string) error {
+func (j *JSONFileStorage) Save(ctx context.Context, key string, val string) error {
 	j.mutex.Lock()
 	defer j.mutex.Unlock()
 
@@ -76,7 +77,7 @@ func (j *JSONFileStorage) Save(key string, val string) error {
 	return nil
 }
 
-func (j *JSONFileStorage) Get(key string) (string, error) {
+func (j *JSONFileStorage) Get(ctx context.Context, key string) (string, error) {
 	j.mutex.Lock()
 	defer j.mutex.Unlock()
 
