@@ -3,9 +3,11 @@ package handlers
 import (
 	"context"
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"github.com/Lesnoi3283/url_shortener/config"
 	"github.com/Lesnoi3283/url_shortener/internal/app/entities"
+	"github.com/Lesnoi3283/url_shortener/pkg/databases"
 	"github.com/go-chi/chi"
 	"io"
 	"log"
@@ -48,6 +50,9 @@ type URLShortenerHandler struct {
 }
 
 func (h *URLShortenerHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+	//necessary to change it to 409 if url already exists
+	successStatus := http.StatusCreated
+
 	//read request params
 	str, err := io.ReadAll(req.Body)
 	if err != nil {
@@ -67,15 +72,21 @@ func (h *URLShortenerHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 	//url saving
 	err = h.URLStorage.Save(h.ctx, urlShort, realURL)
 	if err != nil {
-		res.WriteHeader(http.StatusInternalServerError)
-		log.Default().Println("Error while saving to db")
-		log.Default().Println(err)
-		return
+		alreadyExistsError := databases.NewAlreadyExistsError("shortURL")
+		if errors.Is(err, alreadyExistsError) {
+			urlShort = err.Error()
+			successStatus = http.StatusConflict
+		} else {
+			res.WriteHeader(http.StatusInternalServerError)
+			log.Default().Println("Error while saving to db")
+			log.Default().Println(err)
+			return
+		}
 	}
 
 	//response making
 	res.Header().Set("Content-Type", "text/plain")
 	toRet := h.Conf.BaseAddress + "/" + urlShort
-	res.WriteHeader(http.StatusCreated)
+	res.WriteHeader(successStatus)
 	res.Write([]byte(toRet))
 }

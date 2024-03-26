@@ -1,4 +1,4 @@
-package postgresql
+package databases
 
 import (
 	"context"
@@ -22,7 +22,7 @@ func NewPostgresql(connStr string) (*Postgresql, error) {
 		store: db,
 	}
 
-	_, err = toRet.store.Exec("CREATE TABLE IF NOT EXISTS urls (id SERIAL PRIMARY KEY, long VARCHAR(2048), short VARCHAR(255));")
+	_, err = toRet.store.Exec("CREATE TABLE IF NOT EXISTS urls (id SERIAL PRIMARY KEY, long VARCHAR(2048) UNIQUE, short VARCHAR(255));")
 
 	return toRet, err
 }
@@ -30,11 +30,24 @@ func NewPostgresql(connStr string) (*Postgresql, error) {
 // Хорошая ли идея использовать тут скомпилированные запросы? В NewPostgresql их создать,
 // в структуре постгрес сохранить и использовать в Save и Get. Потокобезопасно ли это?
 func (p *Postgresql) Save(ctx context.Context, short string, full string) error {
-	query := "INSERT INTO urls (long, short) VALUES ($1, $2);"
+	query := "INSERT INTO urls (long, short) VALUES ($1, $2) ON CONFLICT (long) DO NOTHING;"
 
-	_, err := p.store.ExecContext(ctx, query, full, short)
+	result, err := p.store.ExecContext(ctx, query, full, short)
 	if err != nil {
 		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if rowsAffected == 0 {
+		shortUrl := ""
+		query2 := "SELECT short FROM urls WHERE long = $1;"
+		row := p.store.QueryRowContext(ctx, query2, full)
+
+		err = row.Scan(&shortUrl)
+		if err != nil {
+			return err
+		}
+		return NewAlreadyExistsError(shortUrl)
 	}
 
 	return nil

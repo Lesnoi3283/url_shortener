@@ -1,4 +1,4 @@
-package jsonfilestorage
+package databases
 
 import (
 	"bufio"

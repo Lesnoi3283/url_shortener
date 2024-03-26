@@ -3,9 +3,7 @@ package main
 import (
 	"github.com/Lesnoi3283/url_shortener/config"
 	"github.com/Lesnoi3283/url_shortener/internal/app/handlers"
-	"github.com/Lesnoi3283/url_shortener/pkg/databases/jsonfilestorage"
-	"github.com/Lesnoi3283/url_shortener/pkg/databases/justamap"
-	"github.com/Lesnoi3283/url_shortener/pkg/databases/postgresql"
+	"github.com/Lesnoi3283/url_shortener/pkg/databases"
 	"go.uber.org/zap"
 	"log"
 	"net/http"
@@ -20,14 +18,14 @@ func main() {
 	var URLStore handlers.URLStorageInterface
 	if conf.DBConnString != "" {
 		var err error
-		URLStore, err = postgresql.NewPostgresql(conf.DBConnString)
+		URLStore, err = databases.NewPostgresql(conf.DBConnString)
 		if err != nil {
 			log.Fatalf("Problem with starting postgresql: %v", err.Error())
 		}
 	} else if conf.FileStoragePath != "" {
-		URLStore = jsonfilestorage.NewJSONFileStorage(conf.FileStoragePath)
+		URLStore = databases.NewJSONFileStorage(conf.FileStoragePath)
 	} else {
-		URLStore = justamap.NewJustAMap()
+		URLStore = databases.NewJustAMap()
 	}
 
 	//logger set
@@ -46,7 +44,7 @@ func main() {
 	sugar := zapLogger.Sugar()
 
 	//db set
-	db, err := postgresql.NewPostgresql(conf.DBConnString)
+	db, err := databases.NewPostgresql(conf.DBConnString)
 	if err != nil {
 		log.Printf("db was not started, err: %v", err)
 	} else {
