@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/Lesnoi3283/url_shortener/config"
 	"github.com/Lesnoi3283/url_shortener/internal/app/handlers/mocks"
-	"github.com/Lesnoi3283/url_shortener/pkg/databases/postgresql"
+	"github.com/Lesnoi3283/url_shortener/pkg/databases/justamap"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -53,8 +53,9 @@ func TestShortenBatchHandler_ServeHTTP(t *testing.T) {
 		ServerAddress: "localhost:8080",
 		LogLevel:      "info",
 	}
-	URLStore, err := postgresql.NewPostgresql("host=localhost user=yaurlshortenet password=123 dbname=urlshortenerdb sslmode=disable")
-	require.NoError(t, err)
+	//URLStore, err := postgresql.NewPostgresql("host=localhost user=yaurlshortenet password=123 dbname=urlshortenerdb sslmode=disable")
+	//require.NoError(t, err)
+	URLStore := justamap.NewJustAMap()
 	logLevel, err := zap.ParseAtomicLevel(conf.LogLevel)
 	if err != nil {
 		log.Fatalf("logger was not started, err: %v", err)
