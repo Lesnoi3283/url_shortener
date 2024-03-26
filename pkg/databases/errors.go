@@ -1,15 +1,15 @@
 package databases
 
 type AlreadyExistsError struct {
-	ShortUrl string
+	ShortURL string
 }
 
 func (a *AlreadyExistsError) Error() string {
-	return a.ShortUrl
+	return a.ShortURL
 }
 
-func NewAlreadyExistsError(shortUrl string) *AlreadyExistsError {
-	return &AlreadyExistsError{ShortUrl: shortUrl}
+func NewAlreadyExistsError(shortURL string) *AlreadyExistsError {
+	return &AlreadyExistsError{ShortURL: shortURL}
 }
 
 func (a *AlreadyExistsError) Is(target error) bool {

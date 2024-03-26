@@ -38,16 +38,19 @@ func (p *Postgresql) Save(ctx context.Context, short string, full string) error 
 	}
 
 	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
 	if rowsAffected == 0 {
-		shortUrl := ""
+		shortURL := ""
 		query2 := "SELECT short FROM urls WHERE long = $1;"
 		row := p.store.QueryRowContext(ctx, query2, full)
 
-		err = row.Scan(&shortUrl)
+		err = row.Scan(&shortURL)
 		if err != nil {
 			return err
 		}
-		return NewAlreadyExistsError(shortUrl)
+		return NewAlreadyExistsError(shortURL)
 	}
 
 	return nil
