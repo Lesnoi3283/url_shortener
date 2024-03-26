@@ -62,7 +62,7 @@ func (h *shortenBatchHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 		})
 		URLsToReturn = append(URLsToReturn, URLShorten{
 			CorrelationID: URLsGot[i].CorrelationID,
-			ShortURL:      urlShort,
+			ShortURL:      h.Conf.BaseAddress + "/" + urlShort,
 		})
 	}
 
