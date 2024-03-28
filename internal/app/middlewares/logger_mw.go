@@ -6,12 +6,6 @@ import (
 	"time"
 )
 
-//type ResponseWriter interface {
-//	Header() Header
-//	Write([]byte) (int, error)
-//	WriteHeader(statusCode int)
-//}
-
 type responceData struct {
 	size   int
 	status int

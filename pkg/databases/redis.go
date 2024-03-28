@@ -1,10 +1,12 @@
-package redislocal
+package databases
 
 import (
 	"context"
 	"github.com/redis/go-redis/v9"
 	"time"
 )
+
+//deprecated
 
 type Redis struct {
 	Client *redis.Client
@@ -22,12 +24,14 @@ func NewRedis() *Redis {
 	return red
 }
 
-func (r *Redis) Save(key string, val string) error {
-	status := r.Client.Set(context.Background(), key, val, time.Hour*24*31)
+//todo: SaveBatch()
+
+func (r *Redis) Save(ctx context.Context, key string, val string) error {
+	status := r.Client.Set(ctx, key, val, time.Hour*24*31)
 	return status.Err()
 }
 
-func (r *Redis) Get(key string) (string, error) {
-	str, err := r.Client.Get(context.Background(), key).Result()
+func (r *Redis) Get(ctx context.Context, key string) (string, error) {
+	str, err := r.Client.Get(ctx, key).Result()
 	return str, err
 }
