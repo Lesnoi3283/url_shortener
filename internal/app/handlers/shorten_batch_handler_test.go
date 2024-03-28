@@ -71,7 +71,7 @@ func TestShortenBatchHandler_ServeHTTP(t *testing.T) {
 	sugar := zapLogger.Sugar()
 	mockController := gomock.NewController(t)
 	db := mocks.NewMockDBInterface(mockController)
-	ts := httptest.NewServer(BuildRouter(conf, URLStore, *sugar, db))
+	ts := httptest.NewServer(NewRouter(conf, URLStore, *sugar, db))
 
 	// Запуск тестов
 	for _, tt := range tests {

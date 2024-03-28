@@ -12,6 +12,7 @@ type DBInterface interface {
 
 type pingDBHandler struct {
 	db DBInterface
+	//todo: log
 }
 
 func (p *pingDBHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -19,6 +20,7 @@ func (p *pingDBHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		//стоит ли тут в логгер выводить, что бд не работает?
+		//ответ: стоит.
 		return
 	} else {
 		w.WriteHeader(http.StatusOK)

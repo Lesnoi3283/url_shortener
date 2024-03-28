@@ -14,6 +14,7 @@ import (
 	"net/http"
 )
 
+// кастомную ерорку лучше было здесь реализовывать
 type URLStorageInterface interface {
 	Save(ctx context.Context, short string, full string) error
 	SaveBatch(ctx context.Context, urls []entities.URL) error

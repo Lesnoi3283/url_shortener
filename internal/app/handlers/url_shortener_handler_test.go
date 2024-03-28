@@ -72,7 +72,7 @@ func TestURLShortenerHandler(t *testing.T) {
 	sugar := zapLogger.Sugar()
 	mockControlelr := gomock.NewController(t)
 	db := mocks.NewMockDBInterface(mockControlelr)
-	ts := httptest.NewServer(BuildRouter(conf, URLStore, *sugar, db))
+	ts := httptest.NewServer(NewRouter(conf, URLStore, *sugar, db))
 
 	//tests run
 	for _, tt := range tests {

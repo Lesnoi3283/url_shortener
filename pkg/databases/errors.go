@@ -1,5 +1,10 @@
 package databases
 
+import "errors"
+
+// лучше так:
+var ErrAlreadyExists error = errors.New("already exists")
+
 type AlreadyExistsError struct {
 	ShortURL string
 }

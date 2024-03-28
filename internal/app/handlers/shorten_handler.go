@@ -14,7 +14,8 @@ import (
 )
 
 type shortenHandler struct {
-	ctx        context.Context
+	ctx context.Context
+	//todo: поудалять у этого и остальных хендлеров. В запросах используем контекст запроса.
 	URLStorage URLStorageInterface
 	Conf       config.Config
 }
@@ -50,7 +51,7 @@ func (h *shortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	urlShort = urlShort[:16]
 
 	//url saving
-	err = h.URLStorage.Save(h.ctx, urlShort, realURL.Val)
+	err = h.URLStorage.Save(req.Context(), urlShort, realURL.Val)
 	if err != nil {
 		alreadyExistsError := databases.NewAlreadyExistsError("shortURL")
 		if errors.Is(err, alreadyExistsError) {

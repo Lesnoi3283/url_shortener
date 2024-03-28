@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+//deprecated
+
 type Redis struct {
 	Client *redis.Client
 }
