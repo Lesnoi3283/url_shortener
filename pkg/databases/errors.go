@@ -1,12 +1,13 @@
 package databases
 
-import "errors"
-
 // лучше так:
-var ErrAlreadyExists error = errors.New("already exists")
+//var ErrAlreadyExists error = errors.New("already exists")
+
+//func NewAlreadyExistsError()
 
 type AlreadyExistsError struct {
 	ShortURL string
+	Text     string
 }
 
 func (a *AlreadyExistsError) Error() string {

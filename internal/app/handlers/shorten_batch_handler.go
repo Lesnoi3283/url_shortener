@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
@@ -12,15 +11,15 @@ import (
 	"net/http"
 )
 
-type shortenBatchHandler struct {
-	ctx        context.Context
+type ShortenBatchHandler struct {
 	URLStorage URLStorageInterface
 	Conf       config.Config
 }
 
-func (h *shortenBatchHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+func (h *ShortenBatchHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	//read request params
 	bodyBytes, err := io.ReadAll(req.Body)
+	defer req.Body.Close()
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		log.Default().Println("Error while reading reqBody")
@@ -67,10 +66,10 @@ func (h *shortenBatchHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 	}
 
 	//url saving
-	err = h.URLStorage.SaveBatch(h.ctx, URLsToSave)
+	err = h.URLStorage.SaveBatch(req.Context(), URLsToSave)
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
-		log.Default().Println("Error while saving to db")
+		log.Default().Println("Error while saving to DB")
 		log.Default().Println(err)
 		return
 	}

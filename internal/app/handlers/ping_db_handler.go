@@ -10,13 +10,13 @@ type DBInterface interface {
 	Ping() error
 }
 
-type pingDBHandler struct {
-	db DBInterface
+type PingDBHandler struct {
+	DB DBInterface
 	//todo: log
 }
 
-func (p *pingDBHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	err := p.db.Ping()
+func (p *PingDBHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	err := p.DB.Ping()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		//стоит ли тут в логгер выводить, что бд не работает?

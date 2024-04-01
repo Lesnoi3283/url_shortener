@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"crypto/sha256"
 	"encoding/json"
 	"errors"
@@ -13,19 +12,18 @@ import (
 	"net/http"
 )
 
-type shortenHandler struct {
-	ctx context.Context
-	//todo: поудалять у этого и остальных хендлеров. В запросах используем контекст запроса.
+type ShortenHandler struct {
 	URLStorage URLStorageInterface
 	Conf       config.Config
 }
 
-func (h *shortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+func (h *ShortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	//necessary to change it to 409 if url already exists
 	successStatus := http.StatusCreated
 
 	//read request params
 	bodyBytes, err := io.ReadAll(req.Body)
+	defer req.Body.Close()
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		log.Default().Println("Error while reading reqBody")
@@ -52,17 +50,15 @@ func (h *shortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 
 	//url saving
 	err = h.URLStorage.Save(req.Context(), urlShort, realURL.Val)
-	if err != nil {
-		alreadyExistsError := databases.NewAlreadyExistsError("shortURL")
-		if errors.Is(err, alreadyExistsError) {
-			urlShort = err.Error()
-			successStatus = http.StatusConflict
-		} else {
-			res.WriteHeader(http.StatusInternalServerError)
-			log.Default().Println("Error while saving to db")
-			log.Default().Println(err)
-			return
-		}
+	var alrExErr databases.AlreadyExistsError
+	if errors.Is(err, &alrExErr) {
+		urlShort = alrExErr.ShortURL
+		successStatus = http.StatusConflict
+	} else if err != nil {
+		res.WriteHeader(http.StatusInternalServerError)
+		log.Default().Println("Error while saving to DB")
+		log.Default().Println(err)
+		return
 	}
 
 	//response making

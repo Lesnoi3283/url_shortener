@@ -18,14 +18,14 @@ func Test_pingDBHandler_ServeHTTP(t *testing.T) {
 		statusWant    int
 	}{
 		{
-			name: "db works",
+			name: "DB works",
 			mockSetupFunc: func(dbInterface *mocks.MockDBInterface) {
 				dbInterface.EXPECT().Ping().Return(nil)
 			},
 			statusWant: http.StatusOK,
 		},
 		{
-			name: "db doesnt work",
+			name: "DB doesnt work",
 			mockSetupFunc: func(dbInterface *mocks.MockDBInterface) {
 				dbInterface.EXPECT().Ping().Return(sql.ErrConnDone)
 			},
@@ -39,8 +39,8 @@ func Test_pingDBHandler_ServeHTTP(t *testing.T) {
 
 			tt.mockSetupFunc(db)
 
-			p := &pingDBHandler{
-				db: db,
+			p := &PingDBHandler{
+				DB: db,
 			}
 
 			req, err := http.NewRequest("GET", "/ping", nil)

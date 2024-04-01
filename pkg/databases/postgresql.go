@@ -3,6 +3,7 @@ package databases
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"github.com/Lesnoi3283/url_shortener/internal/app/entities"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
@@ -15,7 +16,7 @@ func NewPostgresql(connStr string) (*Postgresql, error) {
 
 	db, err := sql.Open("pgx", connStr)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Postgres sql open: %w", err)
 	}
 
 	toRet := &Postgresql{
@@ -24,6 +25,9 @@ func NewPostgresql(connStr string) (*Postgresql, error) {
 
 	_, err = toRet.store.Exec("CREATE TABLE IF NOT EXISTS urls (id SERIAL PRIMARY KEY, long VARCHAR(2048) UNIQUE, short VARCHAR(255));")
 
+	if err != nil {
+		return nil, fmt.Errorf("Postgres exec: %w", err)
+	}
 	return toRet, err
 }
 
@@ -34,7 +38,7 @@ func (p *Postgresql) Save(ctx context.Context, short string, full string) error 
 
 	result, err := p.store.ExecContext(ctx, query, full, short)
 	if err != nil {
-		return err
+		return fmt.Errorf("Postgres execute: %w", err)
 	}
 
 	rowsAffected, err := result.RowsAffected()
@@ -48,7 +52,7 @@ func (p *Postgresql) Save(ctx context.Context, short string, full string) error 
 
 		err = row.Scan(&shortURL)
 		if err != nil {
-			return err
+			return fmt.Errorf("Postgres query: %w", err)
 		}
 		return NewAlreadyExistsError(shortURL)
 	}
@@ -59,7 +63,7 @@ func (p *Postgresql) Save(ctx context.Context, short string, full string) error 
 func (p *Postgresql) SaveBatch(ctx context.Context, urls []entities.URL) error {
 	tx, err := p.store.Begin()
 	if err != nil {
-		return err
+		return fmt.Errorf("Postgres transaction start: %w", err)
 	}
 	query := "INSERT INTO urls (long, short) VALUES ($1, $2);"
 
@@ -71,7 +75,11 @@ func (p *Postgresql) SaveBatch(ctx context.Context, urls []entities.URL) error {
 	}
 
 	err = tx.Commit()
-	return err
+	if err != nil {
+		return fmt.Errorf("Postgres, transaction commit: %w", err)
+	}
+
+	return nil
 }
 
 func (p *Postgresql) Get(ctx context.Context, short string) (full string, err error) {
@@ -81,9 +89,8 @@ func (p *Postgresql) Get(ctx context.Context, short string) (full string, err er
 
 	err = row.Scan(&full)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("Postgres query: %w", err)
 	}
-
 	return full, nil
 }
 

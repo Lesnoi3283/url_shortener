@@ -7,9 +7,8 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest"
 	"io"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -56,20 +55,13 @@ func TestURLShortenerHandler(t *testing.T) {
 		ServerAddress: "localhost:8080",
 		LogLevel:      "info",
 	}
-	URLStore := databases.NewJustAMap()
-	logLevel, err := zap.ParseAtomicLevel(conf.LogLevel)
-	if err != nil {
-		log.Fatalf("logger was not started, err: %v", err)
-	}
 
-	zCfg := zap.NewProductionConfig()
-	zCfg.Level = logLevel
-	zapLogger, err := zCfg.Build()
-	if err != nil {
-		log.Fatalf("logger was not started, err: %v", err)
-	}
-	defer zapLogger.Sync()
-	sugar := zapLogger.Sugar()
+	URLStore := databases.NewJustAMap()
+
+	zapTestLogger := zaptest.NewLogger(t)
+	defer zapTestLogger.Sync()
+	sugar := zapTestLogger.Sugar()
+
 	mockControlelr := gomock.NewController(t)
 	db := mocks.NewMockDBInterface(mockControlelr)
 	ts := httptest.NewServer(NewRouter(conf, URLStore, *sugar, db))

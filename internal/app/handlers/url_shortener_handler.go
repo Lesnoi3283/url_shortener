@@ -23,7 +23,6 @@ type URLStorageInterface interface {
 }
 
 type ShortURLRedirectHandler struct {
-	ctx        context.Context
 	URLStorage URLStorageInterface
 }
 
@@ -31,8 +30,8 @@ func (h *ShortURLRedirectHandler) ServeHTTP(res http.ResponseWriter, req *http.R
 	//reading data from request
 	shorted := chi.URLParam(req, "url")
 
-	//reading from db
-	fullURL, err := h.URLStorage.Get(h.ctx, shorted)
+	//reading from DB
+	fullURL, err := h.URLStorage.Get(req.Context(), shorted)
 	if err != nil {
 		res.WriteHeader(http.StatusBadRequest)
 		log.Default().Printf("fullURL was not found: %v\n", err)
@@ -72,18 +71,28 @@ func (h *URLShortenerHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 
 	//url saving
 	err = h.URLStorage.Save(h.ctx, urlShort, realURL)
-	if err != nil {
-		alreadyExistsError := databases.NewAlreadyExistsError("shortURL")
-		if errors.Is(err, alreadyExistsError) {
-			urlShort = err.Error()
-			successStatus = http.StatusConflict
-		} else {
-			res.WriteHeader(http.StatusInternalServerError)
-			log.Default().Println("Error while saving to db")
-			log.Default().Println(err)
-			return
-		}
+	var alrExErr *databases.AlreadyExistsError
+	if errors.As(err, &alrExErr) {
+		urlShort = alrExErr.ShortURL
+		successStatus = http.StatusConflict
+	} else {
+		res.WriteHeader(http.StatusInternalServerError)
+		log.Default().Println("Error while saving to DB")
+		log.Default().Println(err)
+		return
 	}
+	//if err != nil {
+	//	alreadyExistsError := databases.NewAlreadyExistsError("shortURL")
+	//	if errors.Is(err, alreadyExistsError) {
+	//		urlShort = err.Error()
+	//		successStatus = http.StatusConflict
+	//	} else {
+	//		res.WriteHeader(http.StatusInternalServerError)
+	//		log.Default().Println("Error while saving to DB")
+	//		log.Default().Println(err)
+	//		return
+	//	}
+	//}
 
 	//response making
 	res.Header().Set("Content-Type", "text/plain")
