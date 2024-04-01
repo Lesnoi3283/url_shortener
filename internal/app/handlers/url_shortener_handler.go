@@ -75,7 +75,7 @@ func (h *URLShortenerHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 	if errors.As(err, &alrExErr) {
 		urlShort = alrExErr.ShortURL
 		successStatus = http.StatusConflict
-	} else {
+	} else if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		log.Default().Println("Error while saving to DB")
 		log.Default().Println(err)
