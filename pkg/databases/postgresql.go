@@ -34,8 +34,7 @@ func NewPostgresql(connStr string) (*Postgresql, error) {
 // Хорошая ли идея использовать тут скомпилированные запросы? В NewPostgresql их создать,
 // в структуре постгрес сохранить и использовать в Save и Get. Потокобезопасно ли это?
 func (p *Postgresql) Save(ctx context.Context, short string, full string) error {
-	//query := "INSERT INTO urls (long, short) VALUES ($1, $2) ON CONFLICT (long) DO NOTHING;"
-	query := "INSERT INTO urls (long, short) VALUES ($1, $2);"
+	query := "INSERT INTO urls (long, short) VALUES ($1, $2) ON CONFLICT (long) DO NOTHING;"
 
 	result, err := p.store.ExecContext(ctx, query, full, short)
 	if err != nil {
