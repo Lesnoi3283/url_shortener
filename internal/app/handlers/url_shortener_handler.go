@@ -44,7 +44,6 @@ func (h *ShortURLRedirectHandler) ServeHTTP(res http.ResponseWriter, req *http.R
 }
 
 type URLShortenerHandler struct {
-	ctx        context.Context
 	Conf       config.Config
 	URLStorage URLStorageInterface
 }
@@ -70,7 +69,7 @@ func (h *URLShortenerHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 	urlShort = urlShort[:16]
 
 	//url saving
-	err = h.URLStorage.Save(h.ctx, urlShort, realURL)
+	err = h.URLStorage.Save(req.Context(), urlShort, realURL)
 	var alrExErr *databases.AlreadyExistsError
 	if errors.As(err, &alrExErr) {
 		urlShort = alrExErr.ShortURL
