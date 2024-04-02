@@ -81,18 +81,6 @@ func (h *URLShortenerHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 		log.Default().Println(err)
 		return
 	}
-	//if err != nil {
-	//	alreadyExistsError := databases.NewAlreadyExistsError("shortURL")
-	//	if errors.Is(err, alreadyExistsError) {
-	//		urlShort = err.Error()
-	//		successStatus = http.StatusConflict
-	//	} else {
-	//		res.WriteHeader(http.StatusInternalServerError)
-	//		log.Default().Println("Error while saving to DB")
-	//		log.Default().Println(err)
-	//		return
-	//	}
-	//}
 
 	//response making
 	res.Header().Set("Content-Type", "text/plain")

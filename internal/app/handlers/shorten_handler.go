@@ -50,8 +50,8 @@ func (h *ShortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 
 	//url saving
 	err = h.URLStorage.Save(req.Context(), urlShort, realURL.Val)
-	var alrExErr databases.AlreadyExistsError
-	if errors.Is(err, &alrExErr) {
+	var alrExErr *databases.AlreadyExistsError
+	if errors.As(err, &alrExErr) {
 		urlShort = alrExErr.ShortURL
 		successStatus = http.StatusConflict
 	} else if err != nil {

@@ -6,6 +6,7 @@ import (
 	"github.com/Lesnoi3283/url_shortener/pkg/databases"
 	"github.com/go-chi/chi"
 	"go.uber.org/zap"
+	"net/http"
 )
 
 func NewRouter(conf config.Config, store URLStorageInterface, logger zap.SugaredLogger, db DBInterface) chi.Router {
@@ -29,8 +30,7 @@ func NewRouter(conf config.Config, store URLStorageInterface, logger zap.Sugared
 	}
 
 	//handlers setting
-	//r.Post("/", middlewares.LoggerMW(middlewares.CompressionMW(http.HandlerFunc(URLShortener.ServeHTTP), logger), logger)) //вот так надо
-	r.Post("/", middlewares.LoggerMW(middlewares.CompressionMW(&URLShortener, logger), logger)) //вот так надо
+	r.Post("/", middlewares.LoggerMW(middlewares.CompressionMW(http.HandlerFunc(URLShortener.ServeHTTP), logger), logger)) //вот так надо
 	r.Get("/{url}", middlewares.LoggerMW(middlewares.CompressionMW(&shortURLRedirect, logger), logger))
 	r.Post("/api/shorten", middlewares.LoggerMW(middlewares.CompressionMW(&shortener, logger), logger))
 	r.Post("/api/shorten/batch", middlewares.LoggerMW(middlewares.CompressionMW(&shortenBatch, logger), logger))
