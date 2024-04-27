@@ -18,7 +18,7 @@ type ShortenHandler struct {
 }
 
 func (h *ShortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
-	//necessary to change it to 409 if url already exists
+	//this var is using for changing status to 409 if url already exists
 	successStatus := http.StatusCreated
 
 	//read request params
