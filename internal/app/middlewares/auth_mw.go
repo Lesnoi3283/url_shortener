@@ -1,8 +1,8 @@
 package middlewares
 
 import (
+	"context"
 	"fmt"
-	"github.com/Lesnoi3283/url_shortener/internal/app/handlers"
 	"github.com/golang-jwt/jwt/v4"
 	"go.uber.org/zap"
 	"net/http"
@@ -54,39 +54,41 @@ func GetUserId(tokenString string) int {
 	return claims.UserID
 }
 
-func AuthMW(h http.Handler, store handlers.URLStorageInterface, logger zap.SugaredLogger) http.HandlerFunc {
+type UserCreater interface {
+	CreateUser(ctx context.Context) (int, error)
+}
+
+func AuthMW(h http.Handler, store UserCreater, logger zap.SugaredLogger) http.HandlerFunc {
 	authFn := func(w http.ResponseWriter, r *http.Request) {
-		postgresqlDB, ok := (store).(handlers.UserUrlsStorageInterface)
-		if ok {
-			coockie, err := r.Cookie(JWT_COOCKIE_NAME)
-			if err == nil {
-				userIDd := GetUserId(coockie.Value)
-				if userIDd != -1 {
-					h.ServeHTTP(w, r)
-				}
+		coockie, err := r.Cookie(JWT_COOCKIE_NAME)
+		if err == nil {
+			userIDd := GetUserId(coockie.Value)
+			if userIDd != -1 {
+				h.ServeHTTP(w, r)
 			}
-
-			userID, err := postgresqlDB.CreateUser(r.Context())
-			if err != nil {
-				logger.Errorf("err while creating new user in auth mw: %v", err.Error())
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-
-			jwt, err := BuildNewJWTString(userID)
-			if err != nil {
-				logger.Errorf("err while building new jwt in auth mw: %v", err.Error())
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-
-			http.SetCookie(w, &http.Cookie{
-				Name:  JWT_COOCKIE_NAME,
-				Value: jwt,
-			})
-
-			h.ServeHTTP(w, r)
 		}
+
+		userID, err := store.CreateUser(r.Context())
+		if err != nil {
+			logger.Errorf("err while creating new user in auth mw: %v", err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		jwt, err := BuildNewJWTString(userID)
+		if err != nil {
+			logger.Errorf("err while building new jwt in auth mw: %v", err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		http.SetCookie(w, &http.Cookie{
+			Name:  JWT_COOCKIE_NAME,
+			Value: jwt,
+		})
+
+		h.ServeHTTP(w, r)
+
 	}
 
 	return authFn

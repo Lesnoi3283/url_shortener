@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Lesnoi3283/url_shortener/config"
+	"github.com/Lesnoi3283/url_shortener/internal/app/middlewares"
 	"github.com/Lesnoi3283/url_shortener/pkg/databases"
 	"io"
 	"log"
@@ -49,7 +50,14 @@ func (h *ShortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	urlShort = urlShort[:16]
 
 	//url saving
-	err = h.URLStorage.Save(req.Context(), urlShort, realURL.Val)
+	userURLsStorage, ok := (h.URLStorage).(UserUrlsStorageInterface)
+	cookie, err := req.Cookie(middlewares.JWT_COOCKIE_NAME)
+	if ok && (err != nil) {
+		userID := middlewares.GetUserId(cookie.Value)
+		err = userURLsStorage.SaveWithUserId(req.Context(), userID, urlShort, realURL.Val)
+	} else {
+		err = h.URLStorage.Save(req.Context(), urlShort, realURL.Val)
+	}
 	var alrExErr *databases.AlreadyExistsError
 	if errors.As(err, &alrExErr) {
 		urlShort = alrExErr.ShortURL

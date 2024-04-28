@@ -27,13 +27,31 @@ func NewRouter(conf config.Config, store URLStorageInterface, logger zap.Sugared
 	shortenBatch := ShortenBatchHandler{
 		URLStorage: store,
 		Conf:       conf,
+		Log:        logger,
 	}
 
 	//handlers setting
-	r.Post("/", middlewares.LoggerMW(middlewares.CompressionMW(http.HandlerFunc(URLShortener.ServeHTTP), logger), logger)) //вот так надо
-	r.Get("/{url}", middlewares.LoggerMW(middlewares.CompressionMW(&shortURLRedirect, logger), logger))
-	r.Post("/api/shorten", middlewares.LoggerMW(middlewares.CompressionMW(&shortener, logger), logger))
-	r.Post("/api/shorten/batch", middlewares.LoggerMW(middlewares.CompressionMW(&shortenBatch, logger), logger))
+	userURLsSotrange, ok := (store).(UserUrlsStorageInterface)
+	if ok {
+		//normal db service
+		userURLs := UserURLsHandler{
+			URLStorage: userURLsSotrange,
+			Conf:       config.Config{},
+			Logger:     zap.Logger{},
+		}
+		r.Get("/api/user/urls", middlewares.LoggerMW(middlewares.CompressionMW(middlewares.AuthMW(&userURLs, userURLsSotrange, logger), logger), logger))
+		r.Post("/", middlewares.LoggerMW(middlewares.CompressionMW(middlewares.AuthMW(http.HandlerFunc(URLShortener.ServeHTTP), userURLsSotrange, logger), logger), logger)) //вот так надо
+		r.Get("/{url}", middlewares.LoggerMW(middlewares.CompressionMW(middlewares.AuthMW(&shortURLRedirect, userURLsSotrange, logger), logger), logger))
+		r.Post("/api/shorten", middlewares.LoggerMW(middlewares.CompressionMW(middlewares.AuthMW(&shortener, userURLsSotrange, logger), logger), logger))
+		r.Post("/api/shorten/batch", middlewares.LoggerMW(middlewares.CompressionMW(middlewares.AuthMW(&shortenBatch, userURLsSotrange, logger), logger), logger))
+	} else {
+		//shitty db edition
+		r.Post("/", middlewares.LoggerMW(middlewares.CompressionMW(http.HandlerFunc(URLShortener.ServeHTTP), logger), logger)) //вот так надо
+		r.Get("/{url}", middlewares.LoggerMW(middlewares.CompressionMW(&shortURLRedirect, logger), logger))
+		r.Post("/api/shorten", middlewares.LoggerMW(middlewares.CompressionMW(&shortener, logger), logger))
+		r.Post("/api/shorten/batch", middlewares.LoggerMW(middlewares.CompressionMW(&shortenBatch, logger), logger))
+	}
+
 	postgresqlDB, ok := (store).(*databases.Postgresql)
 	if ok {
 		pingDB := PingDBHandler{
@@ -41,7 +59,6 @@ func NewRouter(conf config.Config, store URLStorageInterface, logger zap.Sugared
 		}
 		r.Get("/ping", middlewares.LoggerMW(middlewares.CompressionMW(&pingDB, logger), logger))
 	}
-	//r.Get("/ping", middlewares.LoggerMW(middlewares.CompressionMW(&pingDB, logger), logger))
 
 	return r
 }

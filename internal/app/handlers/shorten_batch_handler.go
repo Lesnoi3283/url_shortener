@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"github.com/Lesnoi3283/url_shortener/config"
 	"github.com/Lesnoi3283/url_shortener/internal/app/entities"
+	"github.com/Lesnoi3283/url_shortener/internal/app/middlewares"
+	"go.uber.org/zap"
 	"io"
 	"log"
 	"net/http"
@@ -14,6 +16,7 @@ import (
 type ShortenBatchHandler struct {
 	URLStorage URLStorageInterface
 	Conf       config.Config
+	Log        zap.SugaredLogger
 }
 
 func (h *ShortenBatchHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
@@ -22,7 +25,7 @@ func (h *ShortenBatchHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 	defer req.Body.Close()
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
-		log.Default().Println("Error while reading reqBody")
+		h.Log.Error("Error while reading reqBody")
 		return
 	}
 
@@ -36,7 +39,7 @@ func (h *ShortenBatchHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 	err = json.Unmarshal(bodyBytes, &URLsGot)
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
-		log.Default().Println("Error during unmarshalling JSON")
+		h.Log.Error("Error during unmarshalling JSON")
 		return
 	}
 
@@ -66,11 +69,17 @@ func (h *ShortenBatchHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 	}
 
 	//url saving
-	err = h.URLStorage.SaveBatch(req.Context(), URLsToSave)
+	userURLsStorage, ok := (h.URLStorage).(UserUrlsStorageInterface)
+	cookie, err := req.Cookie(middlewares.JWT_COOCKIE_NAME)
+	if ok && (err != nil) {
+		userID := middlewares.GetUserId(cookie.Value)
+		err = userURLsStorage.SaveBatchWithUserId(req.Context(), userID, URLsToSave)
+	} else {
+		err = h.URLStorage.SaveBatch(req.Context(), URLsToSave)
+	}
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
-		log.Default().Println("Error while saving to DB")
-		log.Default().Println(err)
+		h.Log.Error("Error while saving to DB", zap.Error(err))
 		return
 	}
 

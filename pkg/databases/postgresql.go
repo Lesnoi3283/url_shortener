@@ -47,7 +47,7 @@ func NewPostgresql(connStr string) (*Postgresql, error) {
 // Хорошая ли идея использовать тут скомпилированные запросы? В NewPostgresql их создать,
 // в структуре постгрес сохранить и использовать в Save и Get. Потокобезопасно ли это?
 func (p *Postgresql) Save(ctx context.Context, short string, full string) error {
-	query := "INSERT INTO urls (long, short) VALUES ($1, $2) ON CONFLICT (long) DO NOTHING;"
+	query := "INSERT INTO urls_table (long, short) VALUES ($1, $2) ON CONFLICT (long) DO NOTHING;"
 
 	result, err := p.store.ExecContext(ctx, query, full, short)
 	if err != nil {
@@ -60,8 +60,35 @@ func (p *Postgresql) Save(ctx context.Context, short string, full string) error 
 	}
 	if rowsAffected == 0 {
 		shortURL := ""
-		query2 := "SELECT short FROM urls WHERE long = $1;"
+		query2 := "SELECT short FROM urls_table WHERE long = $1;"
 		row := p.store.QueryRowContext(ctx, query2, full)
+
+		err = row.Scan(&shortURL)
+		if err != nil {
+			return fmt.Errorf("postgres query: %w", err)
+		}
+		return NewAlreadyExistsError(shortURL)
+	}
+
+	return nil
+}
+
+func (p *Postgresql) SaveWithUserId(ctx context.Context, userID int, short string, full string) error {
+	query := "INSERT INTO urls_table (user_id, long, short) VALUES ($1, $2, $3) ON CONFLICT (long) DO NOTHING;"
+
+	result, err := p.store.ExecContext(ctx, query, userID, full, short)
+	if err != nil {
+		return fmt.Errorf("postgres execute: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		shortURL := ""
+		query2 := "SELECT short FROM urls_table WHERE long = $1 AND user_id = $2;"
+		row := p.store.QueryRowContext(ctx, query2, full, userID)
 
 		err = row.Scan(&shortURL)
 		if err != nil {
@@ -78,7 +105,7 @@ func (p *Postgresql) SaveBatch(ctx context.Context, urls []entities.URL) error {
 	if err != nil {
 		return fmt.Errorf("postgres transaction start: %w", err)
 	}
-	query := "INSERT INTO urls (long, short) VALUES ($1, $2);"
+	query := "INSERT INTO urls_table (long, short) VALUES ($1, $2);"
 
 	for _, url := range urls {
 		_, err = tx.ExecContext(ctx, query, url.Long, url.Short)
@@ -95,9 +122,32 @@ func (p *Postgresql) SaveBatch(ctx context.Context, urls []entities.URL) error {
 	return nil
 }
 
+func (p *Postgresql) SaveBatchWithUserId(ctx context.Context, userID int, urls []entities.URL) error {
+	tx, err := p.store.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("postgres transaction start: %w", err)
+	}
+	query := "INSERT INTO urls_table (user_id, long, short) VALUES ($1, $2, $3);"
+
+	for _, url := range urls {
+		_, err = tx.ExecContext(ctx, query, userID, url.Long, url.Short)
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("postgres, transaction error: %w", err)
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("postgres, transaction commit: %w", err)
+	}
+
+	return nil
+}
+
 func (p *Postgresql) Get(ctx context.Context, short string) (full string, err error) {
 
-	query := "SELECT long FROM urls WHERE short = $1;"
+	query := "SELECT long FROM urls_table WHERE short = $1;"
 	row := p.store.QueryRowContext(ctx, query, short)
 
 	err = row.Scan(&full)
@@ -111,7 +161,7 @@ func (p *Postgresql) GetUserUrls(ctx context.Context, userID int) ([]struct {
 	Long  string
 	Short string
 }, error) {
-	query := "SELECT long, short FROM urls WHERE user_id = $1;"
+	query := "SELECT long, short FROM urls_table WHERE user_id = $1;"
 
 	var urls []struct {
 		Long  string
