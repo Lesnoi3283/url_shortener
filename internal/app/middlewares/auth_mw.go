@@ -12,7 +12,10 @@ import (
 const TokenExp = time.Hour * 3
 const SecretKey = "supersecretkey"
 const JwtCookieName = "JWT"
-const UserIDContextName = "userID"
+
+type contextKey string
+
+const UserIDContextKey contextKey = "userID"
 
 type Claims struct {
 	jwt.RegisteredClaims
@@ -47,11 +50,9 @@ func GetUserID(tokenString string) int {
 	}
 
 	if !token.Valid {
-		fmt.Println("Token is not valid")
 		return -1
 	}
 
-	fmt.Println("Token is valid")
 	return claims.UserID
 }
 
@@ -65,7 +66,7 @@ func AuthMW(h http.Handler, store UserCreater, logger zap.SugaredLogger) http.Ha
 		if err == nil {
 			userID := GetUserID(coockie.Value)
 			if userID != -1 {
-				ctx := context.WithValue(r.Context(), UserIDContextName, userID)
+				ctx := context.WithValue(r.Context(), UserIDContextKey, userID)
 				h.ServeHTTP(w, r.WithContext(ctx))
 			}
 		}
@@ -89,7 +90,7 @@ func AuthMW(h http.Handler, store UserCreater, logger zap.SugaredLogger) http.Ha
 			Value: jwt,
 		})
 
-		ctx := context.WithValue(r.Context(), UserIDContextName, userID)
+		ctx := context.WithValue(r.Context(), UserIDContextKey, userID)
 		h.ServeHTTP(w, r.WithContext(ctx))
 
 	}

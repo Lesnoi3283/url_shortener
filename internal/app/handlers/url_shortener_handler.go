@@ -70,10 +70,10 @@ func (h *URLShortenerHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 	urlShort = urlShort[:16]
 
 	//url saving
-	userURLsStorage, ok := (h.URLStorage).(UserUrlsStorageInterface)
-	userIDFromContext := req.Context().Value(middlewares.UserIDContextName)
+	userURLsStorage, storageOk := (h.URLStorage).(UserUrlsStorageInterface)
+	userIDFromContext := req.Context().Value(middlewares.UserIDContextKey)
 	userID, ok := (userIDFromContext).(int)
-	if (userIDFromContext != nil) && (ok) {
+	if (userIDFromContext != nil) && (ok) && storageOk {
 		err = userURLsStorage.SaveWithUserID(req.Context(), userID, urlShort, realURL)
 	} else {
 		err = h.URLStorage.Save(req.Context(), urlShort, realURL)

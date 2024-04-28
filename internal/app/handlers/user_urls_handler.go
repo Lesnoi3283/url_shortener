@@ -34,10 +34,9 @@ type URLData struct {
 
 func (h *UserURLsHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 
-	userIDFromContext := req.Context().Value(middlewares.UserIDContextName)
+	userIDFromContext := req.Context().Value(middlewares.UserIDContextKey)
 	userID, ok := (userIDFromContext).(int)
 
-	h.Logger.Info("shit", zap.Int("userid", userID))
 	if userIDFromContext == nil {
 		h.Logger.Error("UserURLsHandler cookie get err")
 		res.WriteHeader(http.StatusUnauthorized)

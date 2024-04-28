@@ -69,10 +69,10 @@ func (h *ShortenBatchHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 	}
 
 	//url saving
-	userURLsStorage, ok := (h.URLStorage).(UserUrlsStorageInterface)
-	userIDFromContext := req.Context().Value(middlewares.UserIDContextName)
+	userURLsStorage, storageOk := (h.URLStorage).(UserUrlsStorageInterface)
+	userIDFromContext := req.Context().Value(middlewares.UserIDContextKey)
 	userID, ok := (userIDFromContext).(int)
-	if (userIDFromContext != nil) && (ok) {
+	if (userIDFromContext != nil) && (ok) && storageOk {
 		err = userURLsStorage.SaveBatchWithUserID(req.Context(), userID, URLsToSave)
 	} else {
 		err = h.URLStorage.SaveBatch(req.Context(), URLsToSave)

@@ -8,6 +8,7 @@ import (
 	"github.com/Lesnoi3283/url_shortener/config"
 	"github.com/Lesnoi3283/url_shortener/internal/app/middlewares"
 	"github.com/Lesnoi3283/url_shortener/pkg/databases"
+	"go.uber.org/zap"
 	"io"
 	"log"
 	"net/http"
@@ -16,6 +17,7 @@ import (
 type ShortenHandler struct {
 	URLStorage URLStorageInterface
 	Conf       config.Config
+	Log        zap.SugaredLogger
 }
 
 func (h *ShortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
@@ -27,7 +29,7 @@ func (h *ShortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	defer req.Body.Close()
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
-		log.Default().Println("Error while reading reqBody")
+		h.Log.Error("Error while reading req body", zap.Error(err))
 		return
 	}
 
@@ -50,10 +52,10 @@ func (h *ShortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	urlShort = urlShort[:16]
 
 	//url saving
-	userURLsStorage, ok := (h.URLStorage).(UserUrlsStorageInterface)
-	userIDFromContext := req.Context().Value(middlewares.UserIDContextName)
+	userURLsStorage, storageOk := (h.URLStorage).(UserUrlsStorageInterface)
+	userIDFromContext := req.Context().Value(middlewares.UserIDContextKey)
 	userID, ok := (userIDFromContext).(int)
-	if (userIDFromContext != nil) && (ok) {
+	if (userIDFromContext != nil) && (ok) && storageOk {
 		err = userURLsStorage.SaveWithUserID(req.Context(), userID, urlShort, realURL.Val)
 	} else {
 		err = h.URLStorage.Save(req.Context(), urlShort, realURL.Val)

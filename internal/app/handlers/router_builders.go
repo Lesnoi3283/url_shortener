@@ -23,6 +23,7 @@ func NewRouter(conf config.Config, store URLStorageInterface, logger zap.Sugared
 	shortener := ShortenHandler{
 		Conf:       conf,
 		URLStorage: store,
+		Log:        logger,
 	}
 	shortenBatch := ShortenBatchHandler{
 		URLStorage: store,
