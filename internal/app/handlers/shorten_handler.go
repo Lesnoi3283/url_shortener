@@ -82,6 +82,7 @@ func (h *ShortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		log.Default().Println("Error during marshalling JSON responce")
+		return
 	}
 	res.Header().Set("Content-Type", "application/json")
 	res.WriteHeader(successStatus)
