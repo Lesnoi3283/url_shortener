@@ -63,9 +63,10 @@ func AuthMW(h http.Handler, store UserCreater, logger zap.SugaredLogger) http.Ha
 	authFn := func(w http.ResponseWriter, r *http.Request) {
 		coockie, err := r.Cookie(JwtCookieName)
 		if err == nil {
-			userIDd := GetUserID(coockie.Value)
-			if userIDd != -1 {
-				h.ServeHTTP(w, r)
+			userID := GetUserID(coockie.Value)
+			if userID != -1 {
+				ctx := context.WithValue(r.Context(), UserIDContextName, userID)
+				h.ServeHTTP(w, r.WithContext(ctx))
 			}
 		}
 
@@ -88,9 +89,7 @@ func AuthMW(h http.Handler, store UserCreater, logger zap.SugaredLogger) http.Ha
 			Value: jwt,
 		})
 
-		//todo: ctx with value (userID)
 		ctx := context.WithValue(r.Context(), UserIDContextName, userID)
-
 		h.ServeHTTP(w, r.WithContext(ctx))
 
 	}

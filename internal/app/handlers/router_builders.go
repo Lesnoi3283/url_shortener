@@ -37,7 +37,7 @@ func NewRouter(conf config.Config, store URLStorageInterface, logger zap.Sugared
 		userURLs := UserURLsHandler{
 			URLStorage: userURLsSotrange,
 			Conf:       config.Config{},
-			Logger:     zap.Logger{},
+			Logger:     logger,
 		}
 		r.Get("/api/user/urls", middlewares.LoggerMW(middlewares.CompressionMW(middlewares.AuthMW(&userURLs, userURLsSotrange, logger), logger), logger))
 		r.Post("/", middlewares.LoggerMW(middlewares.CompressionMW(middlewares.AuthMW(http.HandlerFunc(URLShortener.ServeHTTP), userURLsSotrange, logger), logger), logger)) //вот так надо

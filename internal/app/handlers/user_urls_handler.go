@@ -13,7 +13,7 @@ import (
 type UserURLsHandler struct {
 	URLStorage UserUrlsStorageInterface
 	Conf       config.Config
-	Logger     zap.Logger
+	Logger     zap.SugaredLogger
 }
 
 type UserUrlsStorageInterface interface {
@@ -37,6 +37,7 @@ func (h *UserURLsHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) 
 	userIDFromContext := req.Context().Value(middlewares.UserIDContextName)
 	userID, ok := (userIDFromContext).(int)
 
+	h.Logger.Info("shit", zap.Int("userid", userID))
 	if userIDFromContext == nil {
 		h.Logger.Error("UserURLsHandler cookie get err")
 		res.WriteHeader(http.StatusUnauthorized)
