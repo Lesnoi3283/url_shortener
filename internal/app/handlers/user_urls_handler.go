@@ -22,8 +22,8 @@ type UserUrlsStorageInterface interface {
 		Long  string
 		Short string
 	}, error)
-	SaveWithUserId(ctx context.Context, userID int, short string, full string) error
-	SaveBatchWithUserId(ctx context.Context, userID int, urls []entities.URL) error
+	SaveWithUserID(ctx context.Context, userID int, short string, full string) error
+	SaveBatchWithUserID(ctx context.Context, userID int, urls []entities.URL) error
 	CreateUser(ctx context.Context) (int, error)
 }
 
@@ -33,14 +33,21 @@ type URLData struct {
 }
 
 func (h *UserURLsHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
-	cookie, err := req.Cookie(middlewares.JWT_COOCKIE_NAME)
-	if err != nil {
-		h.Logger.Error("UserURLsHandler cookie get err", zap.Error(err))
+
+	userIDFromContext := req.Context().Value(middlewares.UserIDContextName)
+	userID, ok := (userIDFromContext).(int)
+
+	if userIDFromContext == nil {
+		h.Logger.Error("UserURLsHandler cookie get err")
 		res.WriteHeader(http.StatusUnauthorized)
 		return
 	}
+	if !ok {
+		h.Logger.Error("UserURLsHandler something wasn`t ok when i tried to cast userIDFromContext to int")
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
-	userID := middlewares.GetUserId(cookie.Value)
 	if userID == -1 {
 		h.Logger.Error("UserURLsHandler just got user id `-1` somehow")
 		res.WriteHeader(http.StatusInternalServerError)

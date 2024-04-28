@@ -73,7 +73,7 @@ func (p *Postgresql) Save(ctx context.Context, short string, full string) error 
 	return nil
 }
 
-func (p *Postgresql) SaveWithUserId(ctx context.Context, userID int, short string, full string) error {
+func (p *Postgresql) SaveWithUserID(ctx context.Context, userID int, short string, full string) error {
 	query := "INSERT INTO urls_table (user_id, long, short) VALUES ($1, $2, $3) ON CONFLICT (long) DO NOTHING;"
 
 	result, err := p.store.ExecContext(ctx, query, userID, full, short)
@@ -87,8 +87,8 @@ func (p *Postgresql) SaveWithUserId(ctx context.Context, userID int, short strin
 	}
 	if rowsAffected == 0 {
 		shortURL := ""
-		query2 := "SELECT short FROM urls_table WHERE long = $1 AND user_id = $2;"
-		row := p.store.QueryRowContext(ctx, query2, full, userID)
+		query2 := "SELECT short FROM urls_table WHERE long = $1;"
+		row := p.store.QueryRowContext(ctx, query2, full)
 
 		err = row.Scan(&shortURL)
 		if err != nil {
@@ -122,7 +122,7 @@ func (p *Postgresql) SaveBatch(ctx context.Context, urls []entities.URL) error {
 	return nil
 }
 
-func (p *Postgresql) SaveBatchWithUserId(ctx context.Context, userID int, urls []entities.URL) error {
+func (p *Postgresql) SaveBatchWithUserID(ctx context.Context, userID int, urls []entities.URL) error {
 	tx, err := p.store.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("postgres transaction start: %w", err)

@@ -71,10 +71,10 @@ func (h *URLShortenerHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 
 	//url saving
 	userURLsStorage, ok := (h.URLStorage).(UserUrlsStorageInterface)
-	cookie, err := req.Cookie(middlewares.JWT_COOCKIE_NAME)
-	if ok && (err != nil) {
-		userID := middlewares.GetUserId(cookie.Value)
-		err = userURLsStorage.SaveWithUserId(req.Context(), userID, urlShort, realURL)
+	userIDFromContext := req.Context().Value(middlewares.UserIDContextName)
+	userID, ok := (userIDFromContext).(int)
+	if (userIDFromContext != nil) && (ok) {
+		err = userURLsStorage.SaveWithUserID(req.Context(), userID, urlShort, realURL)
 	} else {
 		err = h.URLStorage.Save(req.Context(), urlShort, realURL)
 	}

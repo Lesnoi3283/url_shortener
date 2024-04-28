@@ -9,9 +9,10 @@ import (
 	"time"
 )
 
-const TOKEN_EXP = time.Hour * 3
-const SECRET_KEY = "supersecretkey"
-const JWT_COOCKIE_NAME = "JWT"
+const TokenExp = time.Hour * 3
+const SecretKey = "supersecretkey"
+const JwtCookieName = "JWT"
+const UserIDContextName = "userID"
 
 type Claims struct {
 	jwt.RegisteredClaims
@@ -20,14 +21,14 @@ type Claims struct {
 
 func BuildNewJWTString(userID int) (string, error) {
 	claims := Claims{RegisteredClaims: jwt.RegisteredClaims{
-		ExpiresAt: jwt.NewNumericDate(time.Now().Add(TOKEN_EXP)),
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(TokenExp)),
 	},
 		UserID: userID,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	stringToken, err := token.SignedString(SECRET_KEY)
+	stringToken, err := token.SignedString([]byte(SecretKey))
 	if err != nil {
 		return "", fmt.Errorf("building new jwt: %w", err)
 	}
@@ -35,11 +36,11 @@ func BuildNewJWTString(userID int) (string, error) {
 	return stringToken, nil
 }
 
-func GetUserId(tokenString string) int {
+func GetUserID(tokenString string) int {
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims,
 		func(t *jwt.Token) (interface{}, error) {
-			return []byte(SECRET_KEY), nil
+			return []byte(SecretKey), nil
 		})
 	if err != nil {
 		return -1
@@ -60,9 +61,9 @@ type UserCreater interface {
 
 func AuthMW(h http.Handler, store UserCreater, logger zap.SugaredLogger) http.HandlerFunc {
 	authFn := func(w http.ResponseWriter, r *http.Request) {
-		coockie, err := r.Cookie(JWT_COOCKIE_NAME)
+		coockie, err := r.Cookie(JwtCookieName)
 		if err == nil {
-			userIDd := GetUserId(coockie.Value)
+			userIDd := GetUserID(coockie.Value)
 			if userIDd != -1 {
 				h.ServeHTTP(w, r)
 			}
@@ -83,11 +84,14 @@ func AuthMW(h http.Handler, store UserCreater, logger zap.SugaredLogger) http.Ha
 		}
 
 		http.SetCookie(w, &http.Cookie{
-			Name:  JWT_COOCKIE_NAME,
+			Name:  JwtCookieName,
 			Value: jwt,
 		})
 
-		h.ServeHTTP(w, r)
+		//todo: ctx with value (userID)
+		ctx := context.WithValue(r.Context(), UserIDContextName, userID)
+
+		h.ServeHTTP(w, r.WithContext(ctx))
 
 	}
 
