@@ -34,20 +34,15 @@ type URLData struct {
 
 func (h *UserURLsHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 
-	userIDFromContext := req.Context().Value(middlewares.UserIDContextKey)
-	userID, ok := (userIDFromContext).(int)
-
-	if userIDFromContext == nil {
-		h.Logger.Error("UserURLsHandler cookie get err")
+	cookie, err := req.Cookie(middlewares.JwtCookieName)
+	if err != nil {
+		h.Logger.Error("UserURLsHandler cookie get err", zap.Error(err))
 		res.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	if !ok {
-		h.Logger.Error("UserURLsHandler something wasn`t ok when i tried to cast userIDFromContext to int")
-		res.WriteHeader(http.StatusInternalServerError)
-		return
-	}
 
+	token := cookie.Value
+	userID := middlewares.GetUserID(token)
 	if userID == -1 {
 		h.Logger.Error("UserURLsHandler just got user id `-1` somehow")
 		res.WriteHeader(http.StatusInternalServerError)
@@ -79,6 +74,7 @@ func (h *UserURLsHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) 
 	}
 
 	res.Header().Set("Content-Type", "application/json")
-	res.Write(JSONResp)
 	res.WriteHeader(http.StatusOK)
+	res.Write(JSONResp)
+
 }
