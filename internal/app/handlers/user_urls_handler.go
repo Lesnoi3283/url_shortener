@@ -54,7 +54,7 @@ func (h *UserURLsHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	URLDatas := make([]URLData, 5)
+	URLDatas := make([]URLData, 0)
 	URLsFromDB, err := h.URLStorage.GetUserUrls(req.Context(), userID)
 	if err != nil {
 		h.Logger.Error("UserURLsHandler error while trying to get user`s urls", zap.Error(err))
