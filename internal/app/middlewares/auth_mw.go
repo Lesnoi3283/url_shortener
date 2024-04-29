@@ -93,7 +93,7 @@ func AuthMW(h http.Handler, store UserCreater, logger zap.SugaredLogger) http.Ha
 
 		ctx := context.WithValue(r.Context(), UserIDContextKey, userID)
 		h.ServeHTTP(w, r.WithContext(ctx))
-
+		return
 	}
 
 	return authFn

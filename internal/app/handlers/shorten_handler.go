@@ -84,7 +84,7 @@ func (h *ShortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	res.Header().Set("Content-Type", "application/json")
-	res.Write(jsonResponce)
 	res.WriteHeader(successStatus)
+	res.Write(jsonResponce)
 
 }

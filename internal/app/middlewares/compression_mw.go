@@ -66,13 +66,13 @@ func CompressionMW(h http.Handler, logger zap.SugaredLogger) http.HandlerFunc {
 				}
 
 				w.Header().Set("Content-Encoding", "gzip")
-
 				break
 			}
 		}
 
 		//serving
 		h.ServeHTTP(w, r)
+		return
 	}
 
 	return compressionFn
