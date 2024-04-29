@@ -47,5 +47,5 @@ func LoggerMW(h http.Handler, logger zap.SugaredLogger) http.HandlerFunc {
 		logger.Info("responce", zap.Int("status code", lw.data.status), zap.Int("size", lw.data.size))
 	}
 
-	return http.HandlerFunc(logFn)
+	return logFn
 }

@@ -68,6 +68,7 @@ func AuthMW(h http.Handler, store UserCreater, logger zap.SugaredLogger) http.Ha
 			if userID != -1 {
 				ctx := context.WithValue(r.Context(), UserIDContextKey, userID)
 				h.ServeHTTP(w, r.WithContext(ctx))
+				return
 			}
 		}
 

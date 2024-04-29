@@ -66,8 +66,7 @@ func (h *ShortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		successStatus = http.StatusConflict
 	} else if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
-		log.Default().Println("Error while saving to DB")
-		log.Default().Println(err)
+		h.Log.Error("Error while saving to DB", zap.Error(err))
 		return
 	}
 
@@ -85,6 +84,7 @@ func (h *ShortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	res.Header().Set("Content-Type", "application/json")
-	res.WriteHeader(successStatus)
 	res.Write(jsonResponce)
+	res.WriteHeader(successStatus)
+
 }
