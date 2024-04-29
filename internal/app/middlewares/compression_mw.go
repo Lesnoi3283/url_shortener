@@ -72,7 +72,6 @@ func CompressionMW(h http.Handler, logger zap.SugaredLogger) http.HandlerFunc {
 
 		//serving
 		h.ServeHTTP(w, r)
-		return
 	}
 
 	return compressionFn

@@ -66,7 +66,7 @@ func (h *UserURLsHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) 
 	}
 	for _, el := range URLsFromDB {
 		URLDatas = append(URLDatas, URLData{
-			ShortURL:    el.Short,
+			ShortURL:    h.Conf.BaseAddress + "/" + el.Short,
 			OriginalURL: el.Long,
 		})
 	}

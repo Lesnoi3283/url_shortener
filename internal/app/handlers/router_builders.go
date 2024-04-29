@@ -37,7 +37,7 @@ func NewRouter(conf config.Config, store URLStorageInterface, logger zap.Sugared
 		//normal db service
 		userURLs := UserURLsHandler{
 			URLStorage: userURLsSotrange,
-			Conf:       config.Config{},
+			Conf:       conf,
 			Logger:     logger,
 		}
 		r.Get("/api/user/urls", middlewares.LoggerMW(middlewares.CompressionMW(middlewares.AuthMW(&userURLs, userURLsSotrange, logger), logger), logger))
