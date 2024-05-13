@@ -20,7 +20,7 @@ func (h *DeleteURLsHandler) ServeHTTP(res http.ResponseWriter, req *http.Request
 	shortURLs := make([]string, 0)
 
 	dec := json.NewDecoder(req.Body)
-	err := dec.Decode(shortURLs)
+	err := dec.Decode(&shortURLs)
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		h.Log.Error("Error while decoding req body", zap.Error(err))
