@@ -25,7 +25,7 @@ type UserUrlsStorageInterface interface {
 	SaveWithUserID(ctx context.Context, userID int, short string, full string) error
 	SaveBatchWithUserID(ctx context.Context, userID int, urls []entities.URL) error
 	CreateUser(ctx context.Context) (int, error)
-	DeleteBatchWithUserID(ctx context.Context, userID int) (urlsChan chan string, err error)
+	DeleteBatchWithUserID(userID int) (urlsChan chan string, err error)
 }
 
 type URLData struct {

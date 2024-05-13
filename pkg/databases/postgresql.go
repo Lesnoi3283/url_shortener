@@ -148,8 +148,8 @@ func (p *Postgresql) SaveBatchWithUserID(ctx context.Context, userID int, urls [
 	return nil
 }
 
-func (p *Postgresql) DeleteBatchWithUserID(ctx context.Context, userID int) (urlsChan chan string, err error) {
-	tx, err := p.store.BeginTx(ctx, nil)
+func (p *Postgresql) DeleteBatchWithUserID(userID int) (urlsChan chan string, err error) {
+	tx, err := p.store.BeginTx(context.TODO(), nil)
 	if err != nil {
 		return nil, fmt.Errorf("postgres transaction start: %w", err)
 	}
@@ -157,25 +157,11 @@ func (p *Postgresql) DeleteBatchWithUserID(ctx context.Context, userID int) (url
 	query := "UPDATE user_urls_table SET is_deleted = true WHERE short = $1 AND user_id = $2;"
 
 	go func() {
-	loop:
-		for {
-			select {
-			case url, ok := <-urlsChan:
-				{
-					if !ok {
-						break loop
-					}
-					_, errLocal := tx.ExecContext(ctx, query, url, userID)
-					if errLocal != nil {
-						tx.Rollback()
-						return
-					}
-				}
-			case <-ctx.Done():
-				{
-					tx.Rollback()
-					return
-				}
+		for url := range urlsChan {
+			_, errLocal := tx.Exec(query, url, userID)
+			if errLocal != nil {
+				tx.Rollback()
+				return
 			}
 		}
 		if errLocal := tx.Commit(); errLocal != nil {

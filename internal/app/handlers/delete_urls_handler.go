@@ -35,7 +35,7 @@ func (h *DeleteURLsHandler) ServeHTTP(res http.ResponseWriter, req *http.Request
 		return
 	}
 
-	inputCh, err := h.URLStorage.DeleteBatchWithUserID(req.Context(), userID)
+	inputCh, err := h.URLStorage.DeleteBatchWithUserID(userID)
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		h.Log.Error("Error while deleting URLs", zap.Error(err))
