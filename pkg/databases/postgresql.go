@@ -165,23 +165,26 @@ func (p *Postgresql) DeleteBatchWithUserID(ctx context.Context, userID int) (url
 					if !ok {
 						break loop
 					}
-					_, err = tx.ExecContext(ctx, query, url, userID)
-					if err != nil {
+					_, errLocal := tx.ExecContext(ctx, query, url, userID)
+					if errLocal != nil {
 						tx.Rollback()
 						return
 					}
 				}
 			case <-ctx.Done():
 				{
-					//todo: Что делать в этом случае: вызвать rollBack или break loop (чтобы дальше выполнился tx.commit)?
-					break loop
-					//return nil
+					tx.Rollback()
+					return
 				}
 			}
 		}
-		tx.Commit()
+		if errLocal := tx.Commit(); errLocal != nil {
+			tx.Rollback()
+			return
+		}
 	}()
 
+	urlsChan = make(chan string)
 	return urlsChan, nil
 }
 
