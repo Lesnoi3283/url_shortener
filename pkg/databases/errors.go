@@ -1,5 +1,7 @@
 package databases
 
+import "errors"
+
 // лучше так:
 //var ErrAlreadyExists error = errors.New("already exists")
 
@@ -21,4 +23,10 @@ func NewAlreadyExistsError(shortURL string) *AlreadyExistsError {
 func (a *AlreadyExistsError) Is(target error) bool {
 	_, ok := target.(*AlreadyExistsError)
 	return ok
+}
+
+var errURLWasDeleted = errors.New("this url was marked as deleted")
+
+func ErrURLWasDeleted() error {
+	return errURLWasDeleted
 }

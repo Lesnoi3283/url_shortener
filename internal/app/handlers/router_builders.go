@@ -40,11 +40,17 @@ func NewRouter(conf config.Config, store URLStorageInterface, logger zap.Sugared
 			Conf:       conf,
 			Logger:     logger,
 		}
+		deleteURLs := DeleteURLsHandler{
+			URLStorage: userURLsSotrange,
+			Conf:       conf,
+			Log:        logger,
+		}
 		r.Get("/api/user/urls", middlewares.LoggerMW(middlewares.CompressionMW(middlewares.AuthMW(&userURLs, userURLsSotrange, logger), logger), logger))
 		r.Post("/", middlewares.LoggerMW(middlewares.CompressionMW(middlewares.AuthMW(http.HandlerFunc(URLShortener.ServeHTTP), userURLsSotrange, logger), logger), logger)) //вот так надо
 		r.Get("/{url}", middlewares.LoggerMW(middlewares.CompressionMW(middlewares.AuthMW(&shortURLRedirect, userURLsSotrange, logger), logger), logger))
 		r.Post("/api/shorten", middlewares.LoggerMW(middlewares.CompressionMW(middlewares.AuthMW(&shortener, userURLsSotrange, logger), logger), logger))
 		r.Post("/api/shorten/batch", middlewares.LoggerMW(middlewares.CompressionMW(middlewares.AuthMW(&shortenBatch, userURLsSotrange, logger), logger), logger))
+		r.Delete("/api/user/urls", middlewares.LoggerMW(middlewares.CompressionMW(middlewares.AuthMW(&deleteURLs, userURLsSotrange, logger), logger), logger))
 	} else {
 		//shitty db edition
 		r.Post("/", middlewares.LoggerMW(middlewares.CompressionMW(http.HandlerFunc(URLShortener.ServeHTTP), logger), logger)) //вот так надо

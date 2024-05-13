@@ -33,6 +33,10 @@ func (h *ShortURLRedirectHandler) ServeHTTP(res http.ResponseWriter, req *http.R
 
 	//reading from DB
 	fullURL, err := h.URLStorage.Get(req.Context(), shorted)
+	if errors.Is(err, databases.ErrURLWasDeleted()) {
+		res.WriteHeader(http.StatusGone)
+		return
+	}
 	if err != nil {
 		res.WriteHeader(http.StatusBadRequest)
 		log.Default().Printf("fullURL was not found: %v\n", err)
