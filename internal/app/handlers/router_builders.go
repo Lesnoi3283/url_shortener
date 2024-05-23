@@ -6,6 +6,7 @@ import (
 	"github.com/Lesnoi3283/url_shortener/pkg/databases"
 	"github.com/go-chi/chi"
 	"go.uber.org/zap"
+	"time"
 )
 
 func NewRouter(conf config.Config, store URLStorageInterface, logger zap.SugaredLogger, db DBInterface) chi.Router {
@@ -30,8 +31,6 @@ func NewRouter(conf config.Config, store URLStorageInterface, logger zap.Sugared
 		Log:        logger,
 	}
 
-	//requestManager := middlewares.NewRequestManager(15)
-
 	//handlers setting
 	//todo: добавить лимитер мв (ради эксперимента)
 	userURLsSotrange, ok := (store).(UserUrlsStorageInterface)
@@ -50,7 +49,8 @@ func NewRouter(conf config.Config, store URLStorageInterface, logger zap.Sugared
 
 		r.Use(middlewares.AuthMW(userURLsSotrange, logger))
 		r.Use(middlewares.CompressionMW(logger))
-		//r.Use(middlewares.RequestLimiterMW(logger, requestManager))
+		requestManager := middlewares.NewRequestManager(100, time.Minute)
+		r.Use(middlewares.RequestLimiterMW(logger, requestManager))
 		r.Use(middlewares.LoggerMW(logger))
 
 		r.Get("/api/user/urls", userURLs.ServeHTTP)

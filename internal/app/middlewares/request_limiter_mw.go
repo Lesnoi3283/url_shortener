@@ -23,15 +23,16 @@ type Requestik struct {
 //  1. Очищать просроченные запросы в самой мидлваре
 //  2. Запустить горутину, которая будет следить за первым запросом и удалять его по истечению времени
 type RequestManager struct {
-	mutex  sync.RWMutex
-	amount int
-	head   *Requestik
-	last   *Requestik
-	limit  int
+	mutex     sync.RWMutex
+	amount    int
+	head      *Requestik
+	last      *Requestik
+	limit     int
+	timeLimit time.Duration
 }
 
-func NewRequestManager(limit int) *RequestManager {
-	return &RequestManager{limit: limit, head: nil, last: nil}
+func NewRequestManager(limit int, timeLimit time.Duration) *RequestManager {
+	return &RequestManager{limit: limit, head: nil, last: nil, timeLimit: timeLimit}
 }
 
 func (r *RequestManager) add() error {
@@ -44,6 +45,7 @@ func (r *RequestManager) add() error {
 			next: nil,
 		}
 		r.last = r.head
+		r.amount++
 		return nil
 
 	} else if r.amount >= r.limit {
@@ -55,6 +57,7 @@ func (r *RequestManager) add() error {
 			next: nil,
 		}
 		r.last = r.last.next
+		r.amount++
 		return nil
 	}
 }
@@ -65,7 +68,7 @@ func (r *RequestManager) clean() (cleaned int) {
 	defer r.mutex.Unlock()
 
 	if r.head != nil {
-		for time.Since(r.head.time) > time.Minute {
+		for time.Since(r.head.time) > r.timeLimit {
 			r.head = r.head.next
 			cleaned++
 		}
