@@ -35,17 +35,9 @@ type URLData struct {
 
 func (h *UserURLsHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 
-	cookie, err := req.Cookie(middlewares.JwtCookieName)
-	if err != nil {
-		h.Logger.Error("UserURLsHandler cookie get err", zap.Error(err))
-		res.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	//todo: use ctx
-	token := cookie.Value
-	userID := middlewares.GetUserID(token)
-	if userID == -1 {
+	userIDFromContext := req.Context().Value(middlewares.UserIDContextKey)
+	userID, ok := (userIDFromContext).(int)
+	if (userIDFromContext != nil) || (!ok) {
 		h.Logger.Error("UserURLsHandler just got user id `-1` somehow")
 		res.WriteHeader(http.StatusInternalServerError)
 		return

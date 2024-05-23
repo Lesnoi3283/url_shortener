@@ -8,10 +8,10 @@ import (
 	"time"
 )
 
-var limitReached error = errors.New("limit reached")
+var errLimitReached error = errors.New("limit reached")
 
 func NewLimitReachedError() error {
-	return limitReached
+	return errLimitReached
 }
 
 type Requestik struct {
