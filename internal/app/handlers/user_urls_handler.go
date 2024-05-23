@@ -42,6 +42,7 @@ func (h *UserURLsHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) 
 		return
 	}
 
+	//todo: use ctx
 	token := cookie.Value
 	userID := middlewares.GetUserID(token)
 	if userID == -1 {

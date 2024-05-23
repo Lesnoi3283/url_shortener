@@ -32,6 +32,7 @@ func NewRouter(conf config.Config, store URLStorageInterface, logger zap.Sugared
 	}
 
 	//handlers setting
+	//todo: добавить лимитер мв (ради эксперимента)
 	userURLsSotrange, ok := (store).(UserUrlsStorageInterface)
 	if ok {
 		//normal db service
@@ -45,6 +46,7 @@ func NewRouter(conf config.Config, store URLStorageInterface, logger zap.Sugared
 			Conf:       conf,
 			Log:        logger,
 		}
+		//r use - для однократного объявления мв
 		r.Get("/api/user/urls", middlewares.LoggerMW(middlewares.CompressionMW(middlewares.AuthMW(&userURLs, userURLsSotrange, logger), logger), logger))
 		r.Post("/", middlewares.LoggerMW(middlewares.CompressionMW(middlewares.AuthMW(http.HandlerFunc(URLShortener.ServeHTTP), userURLsSotrange, logger), logger), logger)) //вот так надо
 		r.Get("/{url}", middlewares.LoggerMW(middlewares.CompressionMW(middlewares.AuthMW(&shortURLRedirect, userURLsSotrange, logger), logger), logger))
