@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func NewRouter(conf config.Config, store URLStorageInterface, logger zap.SugaredLogger, db DBInterface) chi.Router {
+func NewRouter(conf config.Config, store URLStorageInterface, logger zap.SugaredLogger) chi.Router {
 	r := chi.NewRouter()
 
 	//handlers building
@@ -61,6 +61,8 @@ func NewRouter(conf config.Config, store URLStorageInterface, logger zap.Sugared
 		r.Delete("/api/user/urls", deleteURLs.ServeHTTP)
 	} else {
 		//shitty db edition
+		r.Use(middlewares.LoggerMW(logger))
+		r.Use(middlewares.CompressionMW(logger))
 		r.Post("/", URLShortener.ServeHTTP)
 		r.Get("/{url}", shortURLRedirect.ServeHTTP)
 		r.Post("/api/shorten", shortener.ServeHTTP)

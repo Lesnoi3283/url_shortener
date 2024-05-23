@@ -54,9 +54,7 @@ func main() {
 		defer db.Close()
 	}
 
-	//Я передаю отдельно дб для реализации ендпоинта GET (ping),
-	//который должен пинговать именно постгрес (по требованию задания)
 	//server building
-	r := handlers.NewRouter(conf, URLStore, *sugar, db)
+	r := handlers.NewRouter(conf, URLStore, *sugar)
 	log.Fatal(http.ListenAndServe(conf.ServerAddress, r))
 }
