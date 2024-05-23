@@ -35,9 +35,17 @@ type URLData struct {
 
 func (h *UserURLsHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 
-	userIDFromContext := req.Context().Value(middlewares.UserIDContextKey)
-	userID, ok := (userIDFromContext).(int)
-	if (userIDFromContext == nil) || (!ok) {
+	cookie, err := req.Cookie(middlewares.JwtCookieName)
+	if err != nil {
+		h.Logger.Error("UserURLsHandler cookie get err", zap.Error(err))
+		res.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	//CTX is not needed! Because user MUST be authorised BEFORE this request! GitHub tests sayed me that...
+	token := cookie.Value
+	userID := middlewares.GetUserID(token)
+	if userID == -1 {
 		h.Logger.Error("UserURLsHandler just got user id `-1` somehow")
 		res.WriteHeader(http.StatusInternalServerError)
 		return
