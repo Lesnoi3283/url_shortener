@@ -34,7 +34,7 @@ func NewRequestManager(limit int) *RequestManager {
 	return &RequestManager{limit: limit, head: nil, last: nil}
 }
 
-func (r RequestManager) add() error {
+func (r *RequestManager) add() error {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
@@ -60,12 +60,12 @@ func (r RequestManager) add() error {
 }
 
 // returns amount of deleted requestiks
-func (r RequestManager) clean() (cleaned int) {
+func (r *RequestManager) clean() (cleaned int) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
 	if r.head != nil {
-		for time.Now().Sub(r.head.time) > time.Minute {
+		for time.Since(r.head.time) > time.Minute {
 			r.head = r.head.next
 			cleaned++
 		}
@@ -74,7 +74,7 @@ func (r RequestManager) clean() (cleaned int) {
 	return cleaned
 }
 
-//func (r RequestManager) isFull() bool {
+//func (r *RequestManager) isFull() bool {
 //	r.mutex.RLock()
 //	defer r.mutex.RUnlock()
 //
