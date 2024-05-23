@@ -37,7 +37,7 @@ func (h *UserURLsHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) 
 
 	userIDFromContext := req.Context().Value(middlewares.UserIDContextKey)
 	userID, ok := (userIDFromContext).(int)
-	if (userIDFromContext != nil) || (!ok) {
+	if (userIDFromContext == nil) || (!ok) {
 		h.Logger.Error("UserURLsHandler just got user id `-1` somehow")
 		res.WriteHeader(http.StatusInternalServerError)
 		return
