@@ -31,21 +31,22 @@ func (l *loggingResponceWriter) Header() http.Header {
 	return l.rw.Header()
 }
 
-func LoggerMW(h http.Handler, logger zap.SugaredLogger) http.HandlerFunc {
-	logFn := func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
-		lw := loggingResponceWriter{
-			data: responceData{},
-			rw:   w,
-		}
+func LoggerMW(logger zap.SugaredLogger) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			start := time.Now()
+			lw := loggingResponceWriter{
+				data: responceData{},
+				rw:   w,
+			}
 
-		h.ServeHTTP(&lw, r)
+			next.ServeHTTP(&lw, r)
 
-		duration := time.Since(start)
+			duration := time.Since(start)
 
-		logger.Info("request", zap.String("url", r.URL.String()), zap.String("method", r.Method), zap.Duration("duration", duration))
-		logger.Info("responce", zap.Int("status code", lw.data.status), zap.Int("size", lw.data.size))
+			logger.Info("request", zap.String("url", r.URL.String()), zap.String("method", r.Method), zap.Duration("duration", duration))
+			logger.Info("responce", zap.Int("status code", lw.data.status), zap.Int("size", lw.data.size))
+
+		})
 	}
-
-	return logFn
 }

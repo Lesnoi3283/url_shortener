@@ -6,7 +6,6 @@ import (
 	"github.com/Lesnoi3283/url_shortener/pkg/databases"
 	"github.com/go-chi/chi"
 	"go.uber.org/zap"
-	"net/http"
 )
 
 func NewRouter(conf config.Config, store URLStorageInterface, logger zap.SugaredLogger, db DBInterface) chi.Router {
@@ -31,6 +30,8 @@ func NewRouter(conf config.Config, store URLStorageInterface, logger zap.Sugared
 		Log:        logger,
 	}
 
+	//requestManager := middlewares.NewRequestManager(15)
+
 	//handlers setting
 	//todo: добавить лимитер мв (ради эксперимента)
 	userURLsSotrange, ok := (store).(UserUrlsStorageInterface)
@@ -46,19 +47,24 @@ func NewRouter(conf config.Config, store URLStorageInterface, logger zap.Sugared
 			Conf:       conf,
 			Log:        logger,
 		}
-		//r use - для однократного объявления мв
-		r.Get("/api/user/urls", middlewares.LoggerMW(middlewares.CompressionMW(middlewares.AuthMW(&userURLs, userURLsSotrange, logger), logger), logger))
-		r.Post("/", middlewares.LoggerMW(middlewares.CompressionMW(middlewares.AuthMW(http.HandlerFunc(URLShortener.ServeHTTP), userURLsSotrange, logger), logger), logger)) //вот так надо
-		r.Get("/{url}", middlewares.LoggerMW(middlewares.CompressionMW(middlewares.AuthMW(&shortURLRedirect, userURLsSotrange, logger), logger), logger))
-		r.Post("/api/shorten", middlewares.LoggerMW(middlewares.CompressionMW(middlewares.AuthMW(&shortener, userURLsSotrange, logger), logger), logger))
-		r.Post("/api/shorten/batch", middlewares.LoggerMW(middlewares.CompressionMW(middlewares.AuthMW(&shortenBatch, userURLsSotrange, logger), logger), logger))
-		r.Delete("/api/user/urls", middlewares.LoggerMW(middlewares.CompressionMW(middlewares.AuthMW(&deleteURLs, userURLsSotrange, logger), logger), logger))
+
+		r.Use(middlewares.AuthMW(userURLsSotrange, logger))
+		r.Use(middlewares.CompressionMW(logger))
+		//r.Use(middlewares.RequestLimiterMW(logger, requestManager))
+		r.Use(middlewares.LoggerMW(logger))
+
+		r.Get("/api/user/urls", userURLs.ServeHTTP)
+		r.Post("/", URLShortener.ServeHTTP)
+		r.Get("/{url}", shortURLRedirect.ServeHTTP)
+		r.Post("/api/shorten", shortener.ServeHTTP)
+		r.Post("/api/shorten/batch", shortenBatch.ServeHTTP)
+		r.Delete("/api/user/urls", deleteURLs.ServeHTTP)
 	} else {
 		//shitty db edition
-		r.Post("/", middlewares.LoggerMW(middlewares.CompressionMW(http.HandlerFunc(URLShortener.ServeHTTP), logger), logger)) //вот так надо
-		r.Get("/{url}", middlewares.LoggerMW(middlewares.CompressionMW(&shortURLRedirect, logger), logger))
-		r.Post("/api/shorten", middlewares.LoggerMW(middlewares.CompressionMW(&shortener, logger), logger))
-		r.Post("/api/shorten/batch", middlewares.LoggerMW(middlewares.CompressionMW(&shortenBatch, logger), logger))
+		r.Post("/", URLShortener.ServeHTTP)
+		r.Get("/{url}", shortURLRedirect.ServeHTTP)
+		r.Post("/api/shorten", shortener.ServeHTTP)
+		r.Post("/api/shorten/batch", shortenBatch.ServeHTTP)
 	}
 
 	postgresqlDB, ok := (store).(*databases.Postgresql)
@@ -66,7 +72,7 @@ func NewRouter(conf config.Config, store URLStorageInterface, logger zap.Sugared
 		pingDB := PingDBHandler{
 			DB: postgresqlDB,
 		}
-		r.Get("/ping", middlewares.LoggerMW(middlewares.CompressionMW(&pingDB, logger), logger))
+		r.Get("/ping", pingDB.ServeHTTP)
 	}
 
 	return r
