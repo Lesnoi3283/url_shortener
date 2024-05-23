@@ -47,7 +47,8 @@ func main() {
 	//db set
 	db, err := databases.NewPostgresql(conf.DBConnString)
 	if err != nil {
-		log.Printf("db was not started, err: %v", err)
+		sugar.Error("db was not started, err:", zap.Error(err))
+		//log.Printf("db was not started, err: %v", err)
 	} else {
 		sugar.Info("DB: PostgreSQL")
 		defer db.Close()
