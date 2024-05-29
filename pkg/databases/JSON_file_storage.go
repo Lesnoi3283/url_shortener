@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Lesnoi3283/url_shortener/internal/app/entities"
-	"golang.org/x/crypto/openpgp/errors"
 	"os"
 	"sync"
 	"time"
@@ -253,13 +252,13 @@ func (j *JSONFileStorage) SaveBatchWithUserID(ctx context.Context, userID int, u
 
 func (j *JSONFileStorage) DeleteBatchWithUserID(userID int) (urlsChan chan string, err error) {
 	urlsChan = make(chan string)
-	go func() {
-		//to avoid deadlock
-		for el := range urlsChan {
-			el = el
-		}
-	}()
-	return urlsChan, errors.UnsupportedError("jsonFileStorage storage doesnt support deleteBatch func yet")
+	//go func() {
+	//	//to avoid deadlock
+	//	for el := range urlsChan {
+	//		el = el
+	//	}
+	//}()
+	return urlsChan, ErrThisFuncIsNotSupported()
 }
 
 func (j *JSONFileStorage) GetUserUrls(ctx context.Context, userId int) (URLs []entities.URL, err error) {

@@ -30,3 +30,9 @@ var errURLWasDeleted = errors.New("this url was marked as deleted")
 func ErrURLWasDeleted() error {
 	return errURLWasDeleted
 }
+
+var errThisFuncIsNotSupported = errors.New("jsonFileStorage storage doesnt support deleteBatch func yet")
+
+func ErrThisFuncIsNotSupported() error {
+	return errThisFuncIsNotSupported
+}

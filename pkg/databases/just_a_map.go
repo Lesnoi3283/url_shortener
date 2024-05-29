@@ -6,7 +6,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/Lesnoi3283/url_shortener/internal/app/entities"
-	"golang.org/x/crypto/openpgp/errors"
 	"time"
 )
 
@@ -38,13 +37,13 @@ func (j *JustAMap) SaveBatchWithUserID(ctx context.Context, userID int, urls []e
 
 func (j *JustAMap) DeleteBatchWithUserID(userID int) (urlsChan chan string, err error) {
 	urlsChan = make(chan string)
-	go func() {
-		//to avoid deadlock
-		for el := range urlsChan {
-			el = el
-		}
-	}()
-	return urlsChan, errors.UnsupportedError("justAMap storage doesnt support deleteBatch func yet")
+	//go func() {
+	//	//to avoid deadlock
+	//	for el := range urlsChan {
+	//		el = el
+	//	}
+	//}()
+	return urlsChan, ErrThisFuncIsNotSupported()
 }
 
 func (j *JustAMap) GetUserUrls(ctx context.Context, userID int) ([]entities.URL, error) {

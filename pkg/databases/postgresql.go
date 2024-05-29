@@ -36,13 +36,13 @@ func NewPostgresql(connStr string) (*Postgresql, error) {
 		return nil, fmt.Errorf("postgres exec (create urls_table): %w", err)
 	}
 
-	//_, err = toRet.store.Exec(`
-	//    CREATE TABLE IF NOT EXISTS users (
-	//        id SERIAL PRIMARY KEY
-	//    );`)
-	//if err != nil {
-	//	return nil, fmt.Errorf("postgres exec (create users): %w", err)
-	//}
+	_, err = toRet.store.Exec(`
+	   CREATE TABLE IF NOT EXISTS users (
+	       id SERIAL PRIMARY KEY
+	   );`)
+	if err != nil {
+		return nil, fmt.Errorf("postgres exec (create users): %w", err)
+	}
 
 	return toRet, nil
 }
