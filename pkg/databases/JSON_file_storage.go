@@ -261,7 +261,7 @@ func (j *JSONFileStorage) DeleteBatchWithUserID(userID int) (urlsChan chan strin
 	return urlsChan, ErrThisFuncIsNotSupported()
 }
 
-func (j *JSONFileStorage) GetUserUrls(ctx context.Context, userId int) (URLs []entities.URL, err error) {
+func (j *JSONFileStorage) GetUserUrls(ctx context.Context, userID int) (URLs []entities.URL, err error) {
 	j.mutex.Lock()
 	defer j.mutex.Unlock()
 
@@ -283,7 +283,7 @@ func (j *JSONFileStorage) GetUserUrls(ctx context.Context, userId int) (URLs []e
 			return nil, err
 		}
 
-		if lastData.UserID == userId {
+		if lastData.UserID == userID {
 			URLs = append(URLs, entities.URL{Long: lastData.Val, Short: lastData.Key})
 		}
 	}

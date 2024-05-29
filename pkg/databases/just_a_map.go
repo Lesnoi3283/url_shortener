@@ -59,12 +59,12 @@ func (j *JustAMap) GetUserUrls(ctx context.Context, userID int) ([]entities.URL,
 	return toRet, nil
 }
 
-func (r *JustAMap) Ping() error {
+func (j *JustAMap) Ping() error {
 	return nil
 }
 
 // because it actually a session id, not a user id
-func (r *JustAMap) CreateUser(ctx context.Context) (int, error) {
+func (j *JustAMap) CreateUser(ctx context.Context) (int, error) {
 	t := time.Now()
 	timeBytes := []byte(t.Format(time.RFC3339Nano))
 	hasher := sha256.New()
@@ -75,14 +75,14 @@ func (r *JustAMap) CreateUser(ctx context.Context) (int, error) {
 	return userID, nil
 }
 
-func (r *JustAMap) Save(ctx context.Context, url entities.URL) error {
-	r.Store[url.Short] = url.Long
+func (j *JustAMap) Save(ctx context.Context, url entities.URL) error {
+	j.Store[url.Short] = url.Long
 	return nil
 }
 
-func (r *JustAMap) SaveBatch(ctx context.Context, urls []entities.URL) error {
+func (j *JustAMap) SaveBatch(ctx context.Context, urls []entities.URL) error {
 	for _, url := range urls {
-		err := r.Save(ctx, url)
+		err := j.Save(ctx, url)
 		if err != nil {
 			return err
 		}
@@ -90,8 +90,8 @@ func (r *JustAMap) SaveBatch(ctx context.Context, urls []entities.URL) error {
 	return nil
 }
 
-func (r *JustAMap) Get(ctx context.Context, key string) (toRet string, err error) {
-	toRet, ok := r.Store[key]
+func (j *JustAMap) Get(ctx context.Context, key string) (toRet string, err error) {
+	toRet, ok := j.Store[key]
 	if !ok {
 		err = fmt.Errorf("key doesnt exist")
 	}
