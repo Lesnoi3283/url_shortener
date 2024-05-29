@@ -2,27 +2,88 @@ package databases
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/binary"
 	"fmt"
 	"github.com/Lesnoi3283/url_shortener/internal/app/entities"
+	"golang.org/x/crypto/openpgp/errors"
+	"time"
 )
 
 type JustAMap struct {
-	Store map[string]string
+	Store     map[string]string
+	UserStore map[string]int
 }
 
 func NewJustAMap() *JustAMap {
-	jm := &JustAMap{Store: make(map[string]string)}
+	jm := &JustAMap{Store: make(map[string]string), UserStore: make(map[string]int)}
 	return jm
 }
 
-func (r *JustAMap) Save(ctx context.Context, key string, val string) error {
-	r.Store[key] = val
+func (j *JustAMap) SaveWithUserID(ctx context.Context, userID int, url entities.URL) error {
+	j.Store[url.Short] = url.Long
+	j.UserStore[url.Short] = userID
+	return nil
+}
+
+func (j *JustAMap) SaveBatchWithUserID(ctx context.Context, userID int, urls []entities.URL) error {
+	for _, el := range urls {
+		err := j.SaveWithUserID(ctx, userID, el)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (j *JustAMap) DeleteBatchWithUserID(userID int) (urlsChan chan string, err error) {
+	urlsChan = make(chan string)
+	go func() {
+		//to avoid deadlock
+		for el := range urlsChan {
+			el = el
+		}
+	}()
+	return urlsChan, errors.UnsupportedError("justAMap storage doesnt support deleteBatch func yet")
+}
+
+func (j *JustAMap) GetUserUrls(ctx context.Context, userID int) ([]entities.URL, error) {
+	toRet := make([]entities.URL, 0)
+
+	for short, full := range j.Store {
+		uID := j.UserStore[short]
+		if (uID == userID) && (uID != 0) {
+			toRet = append(toRet, entities.URL{Long: full, Short: short})
+		}
+	}
+
+	return toRet, nil
+}
+
+func (r *JustAMap) Ping() error {
+	return nil
+}
+
+// because it actually a session id, not a user id
+func (r *JustAMap) CreateUser(ctx context.Context) (int, error) {
+	t := time.Now()
+	timeBytes := []byte(t.Format(time.RFC3339Nano))
+	hasher := sha256.New()
+	hasher.Write(timeBytes)
+	hashSum := hasher.Sum(nil)
+
+	userID := int(binary.BigEndian.Uint64(hashSum[:8]))
+	return userID, nil
+}
+
+func (r *JustAMap) Save(ctx context.Context, url entities.URL) error {
+	r.Store[url.Short] = url.Long
 	return nil
 }
 
 func (r *JustAMap) SaveBatch(ctx context.Context, urls []entities.URL) error {
 	for _, url := range urls {
-		err := r.Save(ctx, url.Short, url.Long)
+		err := r.Save(ctx, url)
 		if err != nil {
 			return err
 		}
@@ -31,12 +92,6 @@ func (r *JustAMap) SaveBatch(ctx context.Context, urls []entities.URL) error {
 }
 
 func (r *JustAMap) Get(ctx context.Context, key string) (toRet string, err error) {
-	//Есть идея использовать тут контекст и горутины,
-	//в селекте ожидать получение первого из значений
-	// - завершения контекста или возвращения значения.
-	//Насколько хорошая идея?
-	//P.s. Аналогично в JSON_file_storge и других хранилищах,
-	//в которых контекст не используется по умолчанию (как в постгрес)
 	toRet, ok := r.Store[key]
 	if !ok {
 		err = fmt.Errorf("key doesnt exist")

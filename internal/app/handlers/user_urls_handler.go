@@ -1,31 +1,17 @@
 package handlers
 
 import (
-	"context"
 	"encoding/json"
 	"github.com/Lesnoi3283/url_shortener/config"
-	"github.com/Lesnoi3283/url_shortener/internal/app/entities"
 	"github.com/Lesnoi3283/url_shortener/internal/app/middlewares"
 	"go.uber.org/zap"
 	"net/http"
 )
 
 type UserURLsHandler struct {
-	URLStorage UserUrlsStorageInterface
+	URLStorage URLStorageInterface
 	Conf       config.Config
 	Logger     zap.SugaredLogger
-}
-
-type UserUrlsStorageInterface interface {
-	URLStorageInterface
-	GetUserUrls(ctx context.Context, userID int) ([]struct {
-		Long  string
-		Short string
-	}, error)
-	SaveWithUserID(ctx context.Context, userID int, short string, full string) error
-	SaveBatchWithUserID(ctx context.Context, userID int, urls []entities.URL) error
-	CreateUser(ctx context.Context) (int, error)
-	DeleteBatchWithUserID(userID int) (urlsChan chan string, err error)
 }
 
 type URLData struct {

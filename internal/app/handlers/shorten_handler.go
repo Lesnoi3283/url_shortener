@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Lesnoi3283/url_shortener/config"
+	"github.com/Lesnoi3283/url_shortener/internal/app/entities"
 	"github.com/Lesnoi3283/url_shortener/internal/app/middlewares"
 	"github.com/Lesnoi3283/url_shortener/pkg/databases"
 	"go.uber.org/zap"
@@ -52,13 +53,18 @@ func (h *ShortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	urlShort = urlShort[:16]
 
 	//url saving
-	userURLsStorage, storageOk := (h.URLStorage).(UserUrlsStorageInterface)
 	userIDFromContext := req.Context().Value(middlewares.UserIDContextKey)
 	userID, ok := (userIDFromContext).(int)
-	if (userIDFromContext != nil) && (ok) && storageOk {
-		err = userURLsStorage.SaveWithUserID(req.Context(), userID, urlShort, realURL.Val)
+	if (userIDFromContext != nil) && (ok) {
+		err = h.URLStorage.SaveWithUserID(req.Context(), userID, entities.URL{
+			Short: urlShort,
+			Long:  realURL.Val,
+		})
 	} else {
-		err = h.URLStorage.Save(req.Context(), urlShort, realURL.Val)
+		err = h.URLStorage.Save(req.Context(), entities.URL{
+			Short: urlShort,
+			Long:  realURL.Val,
+		})
 	}
 	var alrExErr *databases.AlreadyExistsError
 	if errors.As(err, &alrExErr) {

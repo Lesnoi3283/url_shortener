@@ -14,19 +14,19 @@ func Test_pingDBHandler_ServeHTTP(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		mockSetupFunc func(dbInterface *mocks.MockDBInterface)
+		mockSetupFunc func(dbInterface *mocks.MockURLStorageInterface)
 		statusWant    int
 	}{
 		{
 			name: "DB works",
-			mockSetupFunc: func(dbInterface *mocks.MockDBInterface) {
+			mockSetupFunc: func(dbInterface *mocks.MockURLStorageInterface) {
 				dbInterface.EXPECT().Ping().Return(nil)
 			},
 			statusWant: http.StatusOK,
 		},
 		{
 			name: "DB doesnt work",
-			mockSetupFunc: func(dbInterface *mocks.MockDBInterface) {
+			mockSetupFunc: func(dbInterface *mocks.MockURLStorageInterface) {
 				dbInterface.EXPECT().Ping().Return(sql.ErrConnDone)
 			},
 			statusWant: http.StatusInternalServerError,
@@ -35,7 +35,7 @@ func Test_pingDBHandler_ServeHTTP(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockController := gomock.NewController(t)
-			db := mocks.NewMockDBInterface(mockController)
+			db := mocks.NewMockURLStorageInterface(mockController)
 
 			tt.mockSetupFunc(db)
 

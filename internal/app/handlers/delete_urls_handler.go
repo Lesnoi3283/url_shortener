@@ -9,7 +9,7 @@ import (
 )
 
 type DeleteURLsHandler struct {
-	URLStorage UserUrlsStorageInterface
+	URLStorage URLStorageInterface
 	Conf       config.Config
 	Log        zap.SugaredLogger
 }

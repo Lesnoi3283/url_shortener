@@ -6,12 +6,8 @@ import (
 
 //go:generate mockgen -destination=mocks/mock_DBInterface.go -package=mocks github.com/Lesnoi3283/url_shortener/internal/app/handlers DBInterface
 
-type DBInterface interface {
-	Ping() error
-}
-
 type PingDBHandler struct {
-	DB DBInterface
+	DB URLStorageInterface
 	//todo: log
 }
 

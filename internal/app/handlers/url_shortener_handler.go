@@ -15,12 +15,18 @@ import (
 	"net/http"
 )
 
-// кастомную ерорку лучше было здесь реализовывать
+//go:generate mockgen -source=url_shortener_handler.go -destination=mocks/mock_DBInterface.go -package=mocks github.com/Lesnoi3283/url_shortener/internal/app/handlers URLStorageInterface
+
 type URLStorageInterface interface {
-	Save(ctx context.Context, short string, full string) error
+	Save(ctx context.Context, url entities.URL) error
 	SaveBatch(ctx context.Context, urls []entities.URL) error
 	Get(ctx context.Context, short string) (full string, err error)
-	//remove(Real) error
+	SaveWithUserID(ctx context.Context, userID int, url entities.URL) error
+	SaveBatchWithUserID(ctx context.Context, userID int, urls []entities.URL) error
+	DeleteBatchWithUserID(userID int) (urlsChan chan string, err error)
+	GetUserUrls(ctx context.Context, userID int) ([]entities.URL, error)
+	Ping() error
+	CreateUser(ctx context.Context) (int, error)
 }
 
 type ShortURLRedirectHandler struct {
@@ -54,7 +60,7 @@ type URLShortenerHandler struct {
 }
 
 func (h *URLShortenerHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
-	//necessary to change it to 409 if url already exists
+	//this var is necessary. Because it helps to change status code to 409 if url already exists
 	successStatus := http.StatusCreated
 
 	//read request params
@@ -74,13 +80,18 @@ func (h *URLShortenerHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 	urlShort = urlShort[:16]
 
 	//url saving
-	userURLsStorage, storageOk := (h.URLStorage).(UserUrlsStorageInterface)
 	userIDFromContext := req.Context().Value(middlewares.UserIDContextKey)
 	userID, ok := (userIDFromContext).(int)
-	if (userIDFromContext != nil) && (ok) && storageOk {
-		err = userURLsStorage.SaveWithUserID(req.Context(), userID, urlShort, realURL)
+	if (userIDFromContext != nil) && (ok) {
+		err = h.URLStorage.SaveWithUserID(req.Context(), userID, entities.URL{
+			Short: urlShort,
+			Long:  realURL,
+		})
 	} else {
-		err = h.URLStorage.Save(req.Context(), urlShort, realURL)
+		err = h.URLStorage.Save(req.Context(), entities.URL{
+			Short: urlShort,
+			Long:  realURL,
+		})
 	}
 
 	var alrExErr *databases.AlreadyExistsError
