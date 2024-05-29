@@ -37,12 +37,6 @@ func (j *JustAMap) SaveBatchWithUserID(ctx context.Context, userID int, urls []e
 
 func (j *JustAMap) DeleteBatchWithUserID(userID int) (urlsChan chan string, err error) {
 	urlsChan = make(chan string)
-	//go func() {
-	//	//to avoid deadlock
-	//	for el := range urlsChan {
-	//		el = el
-	//	}
-	//}()
 	return urlsChan, ErrThisFuncIsNotSupported()
 }
 
