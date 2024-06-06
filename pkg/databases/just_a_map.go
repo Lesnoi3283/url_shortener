@@ -6,12 +6,14 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/Lesnoi3283/url_shortener/internal/app/entities"
+	"sync"
 	"time"
 )
 
 type JustAMap struct {
 	Store     map[string]string
 	UserStore map[string]int
+	Mutex     sync.RWMutex
 }
 
 func NewJustAMap() *JustAMap {
@@ -20,6 +22,8 @@ func NewJustAMap() *JustAMap {
 }
 
 func (j *JustAMap) SaveWithUserID(ctx context.Context, userID int, url entities.URL) error {
+	j.Mutex.Lock()
+	defer j.Mutex.Unlock()
 	j.Store[url.Short] = url.Long
 	j.UserStore[url.Short] = userID
 	return nil
@@ -41,8 +45,10 @@ func (j *JustAMap) DeleteBatchWithUserID(userID int) (urlsChan chan string, err 
 }
 
 func (j *JustAMap) GetUserUrls(ctx context.Context, userID int) ([]entities.URL, error) {
-	toRet := make([]entities.URL, 0)
+	j.Mutex.RLock()
+	defer j.Mutex.RUnlock()
 
+	toRet := make([]entities.URL, 0)
 	for short, full := range j.Store {
 		uID := j.UserStore[short]
 		if (uID == userID) && (uID != 0) {
@@ -57,7 +63,7 @@ func (j *JustAMap) Ping() error {
 	return nil
 }
 
-// because it actually a session id, not a user id
+// I dont store it anywhere because it`s actually a session id, not a user id
 func (j *JustAMap) CreateUser(ctx context.Context) (int, error) {
 	t := time.Now()
 	timeBytes := []byte(t.Format(time.RFC3339Nano))
@@ -70,6 +76,8 @@ func (j *JustAMap) CreateUser(ctx context.Context) (int, error) {
 }
 
 func (j *JustAMap) Save(ctx context.Context, url entities.URL) error {
+	j.Mutex.Lock()
+	defer j.Mutex.Unlock()
 	j.Store[url.Short] = url.Long
 	return nil
 }
@@ -85,6 +93,8 @@ func (j *JustAMap) SaveBatch(ctx context.Context, urls []entities.URL) error {
 }
 
 func (j *JustAMap) Get(ctx context.Context, key string) (toRet string, err error) {
+	j.Mutex.RLock()
+	defer j.Mutex.RUnlock()
 	toRet, ok := j.Store[key]
 	if !ok {
 		err = fmt.Errorf("key doesnt exist")

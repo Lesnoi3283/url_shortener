@@ -44,16 +44,6 @@ func main() {
 	}
 	sugar := zapLogger.Sugar()
 
-	//db set
-	db, err := databases.NewPostgresql(conf.DBConnString)
-	if err != nil {
-		sugar.Error("db was not started, err:", zap.Error(err))
-		//log.Printf("db was not started, err: %v", err)
-	} else {
-		sugar.Info("DB: PostgreSQL")
-		defer db.Close()
-	}
-
 	//server building
 	r := handlers.NewRouter(conf, URLStore, *sugar)
 	log.Fatal(http.ListenAndServe(conf.ServerAddress, r))
