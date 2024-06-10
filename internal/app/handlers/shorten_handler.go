@@ -3,24 +3,34 @@ package handlers
 import (
 	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/Lesnoi3283/url_shortener/config"
+	"github.com/Lesnoi3283/url_shortener/internal/app/entities"
+	"github.com/Lesnoi3283/url_shortener/internal/app/middlewares"
+	"github.com/Lesnoi3283/url_shortener/pkg/databases"
+	"go.uber.org/zap"
 	"io"
 	"log"
 	"net/http"
 )
 
-type shortenHandler struct {
+type ShortenHandler struct {
 	URLStorage URLStorageInterface
 	Conf       config.Config
+	Log        zap.SugaredLogger
 }
 
-func (h *shortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+func (h *ShortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+	//this var is using for changing status to 409 if url already exists
+	successStatus := http.StatusCreated
+
 	//read request params
 	bodyBytes, err := io.ReadAll(req.Body)
+	defer req.Body.Close()
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
-		log.Default().Println("Error while reading reqBody")
+		h.Log.Error("Error while reading req body", zap.Error(err))
 		return
 	}
 
@@ -33,6 +43,7 @@ func (h *shortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		log.Default().Println("Error during unmarshalling JSON")
+		return
 	}
 
 	//url shorting
@@ -42,11 +53,26 @@ func (h *shortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	urlShort = urlShort[:16]
 
 	//url saving
-	err = h.URLStorage.Save(urlShort, realURL.Val)
-	if err != nil {
+	userIDFromContext := req.Context().Value(middlewares.UserIDContextKey)
+	userID, ok := (userIDFromContext).(int)
+	if (userIDFromContext != nil) && (ok) {
+		err = h.URLStorage.SaveWithUserID(req.Context(), userID, entities.URL{
+			Short: urlShort,
+			Long:  realURL.Val,
+		})
+	} else {
+		err = h.URLStorage.Save(req.Context(), entities.URL{
+			Short: urlShort,
+			Long:  realURL.Val,
+		})
+	}
+	var alrExErr *databases.AlreadyExistsError
+	if errors.As(err, &alrExErr) {
+		urlShort = alrExErr.ShortURL
+		successStatus = http.StatusConflict
+	} else if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
-		log.Default().Println("Error while saving to db")
-		log.Default().Println(err)
+		h.Log.Error("Error while saving to DB", zap.Error(err))
 		return
 	}
 
@@ -61,8 +87,10 @@ func (h *shortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		log.Default().Println("Error during marshalling JSON responce")
+		return
 	}
 	res.Header().Set("Content-Type", "application/json")
-	res.WriteHeader(http.StatusCreated)
+	res.WriteHeader(successStatus)
 	res.Write(jsonResponce)
+
 }
