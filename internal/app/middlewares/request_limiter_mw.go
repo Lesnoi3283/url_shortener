@@ -39,7 +39,9 @@ func (r *RequestManager) add() error {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	if r.amount == 0 {
+	if r.amount >= r.limit {
+		return NewLimitReachedError()
+	} else if r.amount == 0 {
 		r.head = &Requestik{
 			time: time.Now(),
 			next: nil,
@@ -48,10 +50,7 @@ func (r *RequestManager) add() error {
 		r.amount++
 		return nil
 
-	} else if r.amount >= r.limit {
-		return NewLimitReachedError()
 	} else {
-
 		r.last.next = &Requestik{
 			time: time.Now(),
 			next: nil,
@@ -76,13 +75,6 @@ func (r *RequestManager) clean() (cleaned int) {
 	r.amount -= cleaned
 	return cleaned
 }
-
-//func (r *RequestManager) isFull() bool {
-//	r.mutex.RLock()
-//	defer r.mutex.RUnlock()
-//
-//	return (r.amount >= r.limit)
-//}
 
 func RequestLimiterMW(logger zap.SugaredLogger, manager *RequestManager) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {

@@ -55,3 +55,18 @@ func Test_pingDBHandler_ServeHTTP(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkPingDBHandler_ServeHTTP(b *testing.B) {
+	mockController := gomock.NewController(b)
+	defer mockController.Finish()
+
+	db := mocks.NewMockURLStorageInterface(mockController)
+	db.EXPECT().Ping().Return(nil).AnyTimes()
+
+	handler := PingDBHandler{DB: db}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		handler.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest("GET", "/ping", nil))
+	}
+}

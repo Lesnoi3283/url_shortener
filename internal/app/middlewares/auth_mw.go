@@ -56,6 +56,8 @@ func GetUserID(tokenString string) int {
 	return claims.UserID
 }
 
+//go:generate mockgen -source=auth_mw.go -destination=mocks/mocks_AuthMW.go -package=mocks_MW github.com/Lesnoi3283/url_shortener/internal/app/middlewares UserCreater
+
 type UserCreater interface {
 	CreateUser(ctx context.Context) (int, error)
 }

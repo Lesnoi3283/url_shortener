@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"github.com/Lesnoi3283/url_shortener/config"
+	"github.com/Lesnoi3283/url_shortener/internal/app/handlers/mocks"
 	"github.com/Lesnoi3283/url_shortener/pkg/databases"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
@@ -100,5 +102,31 @@ func TestURLShortenerHandler(t *testing.T) {
 
 			assert.Equal(t, http.StatusTemporaryRedirect, resp2.StatusCode, tt.name)
 		}
+	}
+}
+
+func BenchmarkURLShortenerHandler_ServeHTTP(b *testing.B) {
+
+	c := gomock.NewController(b)
+	defer c.Finish()
+	storage := mocks.NewMockURLStorageInterface(c)
+	storage.EXPECT().Save(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+
+	conf := config.Config{
+		BaseAddress:   "http://localhost:8080",
+		ServerAddress: "localhost:8080",
+		LogLevel:      "info",
+	}
+
+	handler := URLShortenerHandler{
+		Conf:       conf,
+		URLStorage: storage,
+	}
+
+	reqBody := "https://practicum.yandex.ru/"
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		handler.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest("GET", "/", strings.NewReader(reqBody)))
 	}
 }
