@@ -67,6 +67,10 @@ func BenchmarkPingDBHandler_ServeHTTP(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		handler.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest("GET", "/ping", nil))
+		b.StopTimer()
+		req := httptest.NewRequest("GET", "/ping", nil)
+		b.StartTimer()
+
+		handler.ServeHTTP(httptest.NewRecorder(), req)
 	}
 }

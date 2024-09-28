@@ -52,8 +52,7 @@ func TestShortenBatchHandler_ServeHTTP(t *testing.T) {
 		ServerAddress: "localhost:8080",
 		LogLevel:      "info",
 	}
-	//URLStore, err := postgresql.NewPostgresql("host=localhost user=yaurlshortenet password=123 dbname=urlshortenerdb sslmode=disable")
-	//require.NoError(t, err)
+
 	URLStore := databases.NewJustAMap()
 
 	zapTestLogger := zaptest.NewLogger(t)

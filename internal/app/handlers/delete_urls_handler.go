@@ -22,7 +22,8 @@ func (h *DeleteURLsHandler) ServeHTTP(res http.ResponseWriter, req *http.Request
 	dec := json.NewDecoder(req.Body)
 	err := dec.Decode(&shortURLs)
 	if err != nil {
-		res.WriteHeader(http.StatusInternalServerError)
+		//res.WriteHeader(http.StatusInternalServerError)
+		res.WriteHeader(http.StatusBadRequest)
 		h.Log.Error("Error while decoding req body", zap.Error(err))
 		return
 	}
@@ -30,7 +31,8 @@ func (h *DeleteURLsHandler) ServeHTTP(res http.ResponseWriter, req *http.Request
 	userIDFromContext := req.Context().Value(middlewares.UserIDContextKey)
 	userID, ok := (userIDFromContext).(int)
 	if userIDFromContext == nil || !ok {
-		res.WriteHeader(http.StatusInternalServerError)
+		//res.WriteHeader(http.StatusInternalServerError)
+		res.WriteHeader(http.StatusUnauthorized)
 		h.Log.Error("UserID is nil")
 		return
 	}
