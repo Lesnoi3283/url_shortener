@@ -86,3 +86,60 @@ func TestAuthMW_NoJWT(t *testing.T) {
 	//check result
 	assert.Equal(t, http.StatusOK, w.Code)
 }
+
+func BenchmarkAuthMW(b *testing.B) {
+
+	//prepare data
+	correctUserID := 1
+	correctJWTString, err := BuildNewJWTString(correctUserID)
+	require.NoError(b, err, "Err while preparing test")
+
+	//prepare mocks
+	c := gomock.NewController(b)
+	store := mocks_MW.NewMockUserCreater(c)
+	store.EXPECT().CreateUser(gomock.Any()).Return(correctUserID, nil).AnyTimes()
+
+	//prepare logger
+	logger := zaptest.NewLogger(b)
+	sugar := logger.Sugar()
+
+	//prepare handler witch will check our MW
+	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	//test MW
+	mw := AuthMW(store, *sugar)
+	testable := mw(nextHandler)
+
+	b.Run("With JWT", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			b.StopTimer()
+			//prepare request and recorder
+			requestWithJWT := httptest.NewRequest(http.MethodGet, "/", nil)
+			requestWithJWT.AddCookie(&http.Cookie{
+				Name:  JwtCookieName,
+				Value: correctJWTString,
+			})
+			w := httptest.NewRecorder()
+
+			//test
+			b.StartTimer()
+			testable.ServeHTTP(w, requestWithJWT)
+		}
+	})
+
+	b.Run("No JWT", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			b.StopTimer()
+			//prepare request and recorder
+			requestNoJWT := httptest.NewRequest(http.MethodGet, "/", nil)
+			w := httptest.NewRecorder()
+
+			//test
+			b.StartTimer()
+			testable.ServeHTTP(w, requestNoJWT)
+		}
+	})
+
+}

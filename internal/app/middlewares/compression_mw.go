@@ -37,7 +37,7 @@ func CompressionMW(logger zap.SugaredLogger) func(next http.Handler) http.Handle
 					w.WriteHeader(http.StatusInternalServerError)
 					return
 				}
-				logger.Info(zap.Int("Decomressed data size", len(decompressed)))
+				//logger.Debug(zap.Int("Decomressed data size", len(decompressed)))
 
 				// data replacement
 				r.Body.Close()

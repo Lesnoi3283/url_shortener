@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 	"net/http"
 	"net/http/httptest"
@@ -30,4 +31,33 @@ func TestLoggerMW(t *testing.T) {
 	//check result
 	assert.Equal(t, http.StatusOK, recorder.Code)
 
+}
+
+func BenchmarkLoggerMW(b *testing.B) {
+	//prepare logger
+	logger := zap.NewNop()
+	sugar := logger.Sugar()
+
+	//prepare handler
+	next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Some response"))
+	})
+
+	//prepare mw
+	mw := LoggerMW(*sugar)
+	handler := mw(next)
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		//prepare request and response
+		b.StopTimer()
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest("GET", "/", nil)
+		b.StartTimer()
+
+		//test
+		handler.ServeHTTP(w, r)
+	}
 }

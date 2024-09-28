@@ -70,6 +70,9 @@ func (r *RequestManager) clean() (cleaned int) {
 		for time.Since(r.head.time) > r.timeLimit {
 			r.head = r.head.next
 			cleaned++
+			if r.head == nil {
+				break
+			}
 		}
 	}
 	r.amount -= cleaned
