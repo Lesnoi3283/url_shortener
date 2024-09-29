@@ -32,8 +32,9 @@ func (h *UserURLsHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) 
 	token := cookie.Value
 	userID := middlewares.GetUserID(token)
 	if userID == -1 {
-		h.Logger.Error("UserURLsHandler just got user id `-1` somehow")
-		res.WriteHeader(http.StatusInternalServerError)
+		h.Logger.Error("UserURLsHandler just got user id `-1` somehow. Probably JWT is not valid")
+		//res.WriteHeader(http.StatusInternalServerError)
+		res.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
