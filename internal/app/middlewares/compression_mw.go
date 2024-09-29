@@ -1,11 +1,11 @@
 package middlewares
 
 import (
+	"bytes"
 	"compress/gzip"
 	"go.uber.org/zap"
 	"io"
 	"net/http"
-	"strings"
 )
 
 type gzipWriter struct {
@@ -41,7 +41,7 @@ func CompressionMW(logger zap.SugaredLogger) func(next http.Handler) http.Handle
 
 				// data replacement
 				r.Body.Close()
-				r.Body = io.NopCloser(strings.NewReader(string(decompressed)))
+				r.Body = io.NopCloser(bytes.NewReader(decompressed))
 
 			} else if encoding != "" {
 				logger.Infof("Unsupported compression type `%s`", encoding)

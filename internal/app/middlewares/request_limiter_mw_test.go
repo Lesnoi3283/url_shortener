@@ -112,7 +112,7 @@ func BenchmarkRequestLimiterMW(b *testing.B) {
 	handler := mw(next)
 
 	b.ResetTimer()
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < b.N; i++ {
 		b.StopTimer()
 		//prepare response recorder
 		recorder := httptest.NewRecorder()

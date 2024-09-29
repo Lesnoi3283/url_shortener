@@ -3,6 +3,7 @@ package middlewares
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
@@ -168,4 +169,12 @@ func BenchmarkCompressionMW(b *testing.B) {
 			testable.ServeHTTP(w, requestNoEncoding)
 		}
 	})
+}
+
+func foo(ctx context.Context) {
+	select {
+	case <-ctx.Done():
+	default:
+		return
+	}
 }
