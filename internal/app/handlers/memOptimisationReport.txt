@@ -1,0 +1,58 @@
+File: handlers.test
+Type: alloc_space
+Time: Sep 29, 2024 at 4:39pm (MSK)
+Showing nodes accounting for -1456.93MB, 19.21% of 7584.19MB total
+Dropped 91 nodes (cum <= 37.92MB)
+      flat  flat%   sum%        cum   cum%
+ -874.81MB 11.53% 11.53%  -874.81MB 11.53%  bufio.NewReaderSize (inline)
+  -65.52MB  0.86% 12.40%   -65.52MB  0.86%  net/http.Header.Clone (inline)
+  -63.02MB  0.83% 13.23%   -63.02MB  0.83%  net/http.(*Request).WithContext (inline)
+  -56.02MB  0.74% 13.97%   -56.02MB  0.74%  net/textproto.MIMEHeader.Set (inline)
+  -53.02MB   0.7% 14.67%  -106.52MB  1.40%  net/http.readRequest
+  -51.53MB  0.68% 15.35%   -51.53MB  0.68%  io.ReadAll
+  -48.50MB  0.64% 15.99%   -48.50MB  0.64%  net/http/httptest.NewRecorder (inline)
+  -45.50MB   0.6% 16.59%      -46MB  0.61%  fmt.Sprintf
+  -40.01MB  0.53% 17.11%   -40.01MB  0.53%  net/url.parse
+  -18.50MB  0.24% 17.36%   -58.50MB  0.77%  github.com/Lesnoi3283/url_shortener/internal/app/handlers.(*ShortenBatchHandler).ServeHTTP
+  -16.50MB  0.22% 17.58%   -16.50MB  0.22%  net/textproto.readMIMEHeader
+  -15.50MB   0.2% 17.78%  -168.05MB  2.22%  github.com/Lesnoi3283/url_shortener/internal/app/handlers.(*URLShortenerHandler).ServeHTTP
+  -15.50MB   0.2% 17.98%   -15.50MB   0.2%  strings.NewReader (inline)
+  -13.50MB  0.18% 18.16%   -13.50MB  0.18%  bytes.growSlice
+     -12MB  0.16% 18.32%   -13.50MB  0.18%  github.com/golang/mock/gomock.callSet.FindMatch
+      11MB  0.15% 18.17%       11MB  0.15%  encoding/json.NewDecoder (inline)
+     -10MB  0.13% 18.31%      -10MB  0.13%  crypto/sha256.New
+   -9.50MB  0.13% 18.43%    -9.50MB  0.13%  encoding/json.Marshal
+   -9.50MB  0.13% 18.56%   -20.50MB  0.27%  github.com/Lesnoi3283/url_shortener/internal/app/handlers/mocks.(*MockURLStorageInterface).Save
+      -9MB  0.12% 18.68%   -15.50MB   0.2%  encoding/json.Unmarshal
+      -9MB  0.12% 18.79% -1067.36MB 14.07%  net/http/httptest.NewRequestWithContext
+   -7.50MB 0.099% 18.89%   -12.50MB  0.16%  encoding/json.(*decodeState).object
+   -7.50MB 0.099% 18.99%   -74.63MB  0.98%  github.com/Lesnoi3283/url_shortener/internal/app/handlers.(*ShortenHandler).ServeHTTP
+      -6MB 0.079% 19.07%   -19.50MB  0.26%  bytes.(*Buffer).grow
+      -6MB 0.079% 19.15%   -44.01MB  0.58%  github.com/Lesnoi3283/url_shortener/internal/app/handlers.(*UserURLsHandler).ServeHTTP
+   -3.50MB 0.046% 19.20%    -7.50MB 0.099%  github.com/golang-jwt/jwt/v4.(*SigningMethodHMAC).Verify
+   -2.50MB 0.033% 19.23%      -16MB  0.21%  github.com/golang-jwt/jwt/v4.(*Parser).ParseWithClaims
+    1.50MB  0.02% 19.21%      -14MB  0.18%  github.com/Lesnoi3283/url_shortener/internal/app/middlewares.GetUserID
+         0     0% 19.21%  -874.81MB 11.53%  bufio.NewReader (inline)
+         0     0% 19.21%   -19.50MB  0.26%  bytes.(*Buffer).Write
+         0     0% 19.21%      -10MB  0.13%  crypto.Hash.New
+         0     0% 19.21%    -9.50MB  0.13%  github.com/Lesnoi3283/url_shortener/internal/app/handlers.(*PingDBHandler).ServeHTTP
+         0     0% 19.21%    44.15MB  0.58%  github.com/Lesnoi3283/url_shortener/internal/app/handlers.BenchmarkDeleteURLsHandler_ServeHTTP
+         0     0% 19.21%  -517.97MB  6.83%  github.com/Lesnoi3283/url_shortener/internal/app/handlers.BenchmarkPingDBHandler_ServeHTTP
+         0     0% 19.21%   -79.57MB  1.05%  github.com/Lesnoi3283/url_shortener/internal/app/handlers.BenchmarkShortenBatchHandler_ServeHTTP
+         0     0% 19.21%  -194.34MB  2.56%  github.com/Lesnoi3283/url_shortener/internal/app/handlers.BenchmarkShortenHandler_ServeHTTP
+         0     0% 19.21%  -687.15MB  9.06%  github.com/Lesnoi3283/url_shortener/internal/app/handlers.BenchmarkURLShortenerHandler_ServeHTTP
+         0     0% 19.21%   -53.06MB   0.7%  github.com/Lesnoi3283/url_shortener/internal/app/handlers.BenchmarkUserURLsHandler_ServeHTTP
+         0     0% 19.21%    -9.55MB  0.13%  github.com/Lesnoi3283/url_shortener/internal/app/handlers.BenchmarkUserURLsHandler_ServeHTTP.func1
+         0     0% 19.21%    18.50MB  0.24%  github.com/Lesnoi3283/url_shortener/internal/app/handlers.ShortenURL
+         0     0% 19.21%   -15.50MB   0.2%  github.com/golang-jwt/jwt/v4.ParseWithClaims
+         0     0% 19.21%   -15.50MB   0.2%  github.com/golang/mock/gomock.(*Controller).Call
+         0     0% 19.21%   -13.50MB  0.18%  github.com/golang/mock/gomock.(*Controller).Call.func1
+         0     0% 19.21%   -56.02MB  0.74%  net/http.Header.Set (inline)
+         0     0% 19.21%  -106.52MB  1.40%  net/http.ReadRequest
+         0     0% 19.21%   -19.50MB  0.26%  net/http/httptest.(*ResponseRecorder).Write
+         0     0% 19.21%   -65.52MB  0.86%  net/http/httptest.(*ResponseRecorder).WriteHeader
+         0     0% 19.21% -1067.36MB 14.07%  net/http/httptest.NewRequest (inline)
+         0     0% 19.21%   -16.50MB  0.22%  net/textproto.(*Reader).ReadMIMEHeader (inline)
+         0     0% 19.21%   -40.01MB  0.53%  net/url.ParseRequestURI
+         0     0% 19.21% -1487.93MB 19.62%  testing.(*B).launch
+         0     0% 19.21% -1487.93MB 19.62%  testing.(*B).runN

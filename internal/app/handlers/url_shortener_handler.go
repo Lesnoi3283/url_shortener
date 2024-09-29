@@ -2,9 +2,7 @@ package handlers
 
 import (
 	"context"
-	"crypto/sha256"
 	"errors"
-	"fmt"
 	"github.com/Lesnoi3283/url_shortener/config"
 	"github.com/Lesnoi3283/url_shortener/internal/app/entities"
 	"github.com/Lesnoi3283/url_shortener/internal/app/middlewares"
@@ -64,22 +62,21 @@ func (h *URLShortenerHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 	successStatus := http.StatusCreated
 
 	//read request params
-	str, err := io.ReadAll(req.Body)
+	realURLBytes, err := io.ReadAll(req.Body)
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		log.Default().Println("Error while reading reqBody")
 		return
 	}
 
-	realURL := string(str)
-
 	//url shorting
-	hasher := sha256.New()
-	hasher.Write(str)
-	urlShort := fmt.Sprintf("%x", hasher.Sum(nil))
-	urlShort = urlShort[:16]
+	//hasher := sha256.New()
+	//hasher.Write(str)
+	//urlShort := fmt.Sprintf("%x", hasher.Sum(nil)) //optimizing:
+	urlShort := string(ShortenURL(realURLBytes))
 
 	//url saving
+	realURL := string(realURLBytes)
 	userIDFromContext := req.Context().Value(middlewares.UserIDContextKey)
 	userID, ok := (userIDFromContext).(int)
 	if (userIDFromContext != nil) && (ok) {
@@ -94,20 +91,21 @@ func (h *URLShortenerHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 		})
 	}
 
-	var alrExErr *databases.AlreadyExistsError
-	if errors.As(err, &alrExErr) {
-		urlShort = alrExErr.ShortURL
-		successStatus = http.StatusConflict
-	} else if err != nil {
-		res.WriteHeader(http.StatusInternalServerError)
-		log.Default().Println("Error while saving to DB")
-		log.Default().Println(err)
-		return
+	if err != nil {
+		var alrExErr *databases.AlreadyExistsError
+		if errors.As(err, &alrExErr) {
+			urlShort = alrExErr.ShortURL
+			successStatus = http.StatusConflict
+		} else {
+			res.WriteHeader(http.StatusInternalServerError)
+			log.Default().Println("Error while saving to DB")
+			log.Default().Println(err)
+			return
+		}
 	}
 
 	//response making
 	res.Header().Set("Content-Type", "text/plain")
-	toRet := h.Conf.BaseAddress + "/" + urlShort
 	res.WriteHeader(successStatus)
-	res.Write([]byte(toRet))
+	res.Write([]byte(h.Conf.BaseAddress + "/" + urlShort))
 }
