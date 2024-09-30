@@ -2,10 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/Lesnoi3283/url_shortener/config"
 	"github.com/Lesnoi3283/url_shortener/internal/app/middlewares"
 	"go.uber.org/zap"
-	"net/http"
 )
 
 type UserURLsHandler struct {

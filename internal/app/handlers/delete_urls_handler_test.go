@@ -4,6 +4,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+
 	"github.com/Lesnoi3283/url_shortener/internal/app/handlers/mocks"
 	"github.com/Lesnoi3283/url_shortener/internal/app/middlewares"
 	"github.com/golang/mock/gomock"
@@ -11,10 +16,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
-	"net/http"
-	"net/http/httptest"
-	"strings"
-	"testing"
 )
 
 func TestDeleteURLsHandler_ServeHTTP(t *testing.T) {

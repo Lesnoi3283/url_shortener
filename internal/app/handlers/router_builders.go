@@ -1,11 +1,12 @@
 package handlers
 
 import (
+	"time"
+
 	"github.com/Lesnoi3283/url_shortener/config"
 	"github.com/Lesnoi3283/url_shortener/internal/app/middlewares"
 	"github.com/go-chi/chi"
 	"go.uber.org/zap"
-	"time"
 )
 
 func NewRouter(conf config.Config, store URLStorageInterface, logger zap.SugaredLogger) chi.Router {

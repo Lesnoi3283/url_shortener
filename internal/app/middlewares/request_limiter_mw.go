@@ -2,10 +2,11 @@ package middlewares
 
 import (
 	"errors"
-	"go.uber.org/zap"
 	"net/http"
 	"sync"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 var errLimitReached error = errors.New("limit reached")

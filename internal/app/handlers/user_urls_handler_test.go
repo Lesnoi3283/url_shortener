@@ -3,6 +3,10 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/Lesnoi3283/url_shortener/config"
 	"github.com/Lesnoi3283/url_shortener/internal/app/entities"
 	"github.com/Lesnoi3283/url_shortener/internal/app/handlers/mocks"
@@ -12,9 +16,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
 type testURLData struct {

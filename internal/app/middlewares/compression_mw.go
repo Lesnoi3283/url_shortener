@@ -3,9 +3,10 @@ package middlewares
 import (
 	"bytes"
 	"compress/gzip"
-	"go.uber.org/zap"
 	"io"
 	"net/http"
+
+	"go.uber.org/zap"
 )
 
 type gzipWriter struct {

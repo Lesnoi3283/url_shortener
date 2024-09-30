@@ -3,10 +3,11 @@ package middlewares
 import (
 	"context"
 	"fmt"
-	"github.com/golang-jwt/jwt/v4"
-	"go.uber.org/zap"
 	"net/http"
 	"time"
+
+	"github.com/golang-jwt/jwt/v4"
+	"go.uber.org/zap"
 )
 
 const TokenExp = time.Hour * 3

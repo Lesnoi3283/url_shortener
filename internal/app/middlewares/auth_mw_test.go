@@ -1,14 +1,15 @@
 package middlewares
 
 import (
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	mocks_MW "github.com/Lesnoi3283/url_shortener/internal/app/middlewares/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
 func TestAuthMW_WithValidJWT(t *testing.T) {

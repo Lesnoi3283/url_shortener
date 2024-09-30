@@ -2,12 +2,13 @@ package handlers
 
 import (
 	"database/sql"
-	"github.com/Lesnoi3283/url_shortener/internal/app/handlers/mocks"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/Lesnoi3283/url_shortener/internal/app/handlers/mocks"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_pingDBHandler_ServeHTTP(t *testing.T) {

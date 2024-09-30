@@ -7,10 +7,11 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	"github.com/Lesnoi3283/url_shortener/internal/app/entities"
 	"os"
 	"sync"
 	"time"
+
+	"github.com/Lesnoi3283/url_shortener/internal/app/entities"
 )
 
 type data struct {

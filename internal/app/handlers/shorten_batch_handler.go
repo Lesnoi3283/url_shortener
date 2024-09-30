@@ -2,13 +2,14 @@ package handlers
 
 import (
 	"encoding/json"
+	"io"
+	"log"
+	"net/http"
+
 	"github.com/Lesnoi3283/url_shortener/config"
 	"github.com/Lesnoi3283/url_shortener/internal/app/entities"
 	"github.com/Lesnoi3283/url_shortener/internal/app/middlewares"
 	"go.uber.org/zap"
-	"io"
-	"log"
-	"net/http"
 )
 
 type ShortenBatchHandler struct {

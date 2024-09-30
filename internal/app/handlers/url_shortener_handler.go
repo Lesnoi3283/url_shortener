@@ -3,14 +3,15 @@ package handlers
 import (
 	"context"
 	"errors"
+	"io"
+	"log"
+	"net/http"
+
 	"github.com/Lesnoi3283/url_shortener/config"
 	"github.com/Lesnoi3283/url_shortener/internal/app/entities"
 	"github.com/Lesnoi3283/url_shortener/internal/app/middlewares"
 	"github.com/Lesnoi3283/url_shortener/pkg/databases"
 	"github.com/go-chi/chi"
-	"io"
-	"log"
-	"net/http"
 )
 
 //go:generate mockgen -source=url_shortener_handler.go -destination=mocks/mock_DBInterface.go -package=mocks github.com/Lesnoi3283/url_shortener/internal/app/handlers URLStorageInterface

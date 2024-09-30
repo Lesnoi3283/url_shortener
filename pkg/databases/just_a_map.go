@@ -5,9 +5,10 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"fmt"
-	"github.com/Lesnoi3283/url_shortener/internal/app/entities"
 	"sync"
 	"time"
+
+	"github.com/Lesnoi3283/url_shortener/internal/app/entities"
 )
 
 type JustAMap struct {
