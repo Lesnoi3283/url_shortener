@@ -15,14 +15,12 @@ func NewLimitReachedError() error {
 	return errLimitReached
 }
 
+// Requestik is a list node with time and pointer to a next node.
 type Requestik struct {
 	time time.Time
 	next *Requestik
 }
 
-// Есть 2 идеи:
-//  1. Очищать просроченные запросы в самой мидлваре
-//  2. Запустить горутину, которая будет следить за первым запросом и удалять его по истечению времени
 type RequestManager struct {
 	mutex     sync.RWMutex
 	amount    int
@@ -32,10 +30,12 @@ type RequestManager struct {
 	timeLimit time.Duration
 }
 
+// NewRequestManager returns new RequestManager
 func NewRequestManager(limit int, timeLimit time.Duration) *RequestManager {
 	return &RequestManager{limit: limit, head: nil, last: nil, timeLimit: timeLimit}
 }
 
+// RequestManager.add adds new Requestik to a map if limit isn`t reached.
 func (r *RequestManager) add() error {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
@@ -62,7 +62,7 @@ func (r *RequestManager) add() error {
 	}
 }
 
-// returns amount of deleted requestiks
+// RequestManager.clean cleans ONLY old requestiks (.time > timeLimit), returns amount of deleted requestiks.
 func (r *RequestManager) clean() (cleaned int) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
@@ -80,6 +80,7 @@ func (r *RequestManager) clean() (cleaned int) {
 	return cleaned
 }
 
+// RequestLimiterMW Limits requests from all users by time. Returns a http.StatusTooManyRequests if limit reached.
 func RequestLimiterMW(logger zap.SugaredLogger, manager *RequestManager) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

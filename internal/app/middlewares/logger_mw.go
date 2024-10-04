@@ -32,6 +32,8 @@ func (l *loggingResponceWriter) Header() http.Header {
 	return l.rw.Header()
 }
 
+// LoggerMW logs request`s params: URL, method, duration.
+// And response`s params: status code and size.
 func LoggerMW(logger zap.SugaredLogger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -46,7 +48,7 @@ func LoggerMW(logger zap.SugaredLogger) func(next http.Handler) http.Handler {
 			duration := time.Since(start)
 
 			logger.Info("request", zap.String("url", r.URL.String()), zap.String("method", r.Method), zap.Duration("duration", duration))
-			logger.Info("responce", zap.Int("status code", lw.data.status), zap.Int("size", lw.data.size))
+			logger.Info("response", zap.Int("status code", lw.data.status), zap.Int("size", lw.data.size))
 
 		})
 	}

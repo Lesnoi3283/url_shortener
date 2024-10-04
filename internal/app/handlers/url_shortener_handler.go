@@ -16,6 +16,7 @@ import (
 
 //go:generate mockgen -source=url_shortener_handler.go -destination=mocks/mock_DBInterface.go -package=mocks github.com/Lesnoi3283/url_shortener/internal/app/handlers URLStorageInterface
 
+// URLStorageInterface is a main database interface
 type URLStorageInterface interface {
 	Save(ctx context.Context, url entities.URL) error
 	SaveBatch(ctx context.Context, urls []entities.URL) error
@@ -32,6 +33,7 @@ type ShortURLRedirectHandler struct {
 	URLStorage URLStorageInterface
 }
 
+// ShortURLRedirectHandler.ServeHTTP reads short URL from given URLParam and redirects user to an original URL.
 func (h *ShortURLRedirectHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	//reading data from request
 	shorted := chi.URLParam(req, "url")
@@ -58,6 +60,7 @@ type URLShortenerHandler struct {
 	URLStorage URLStorageInterface
 }
 
+// URLShortenerHandler.ServeHTTP shorts a given URL (plain text), saves it in a storage and returns a short version.
 func (h *URLShortenerHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	//this var is necessary. Because it helps to change status code to 409 if url already exists
 	successStatus := http.StatusCreated

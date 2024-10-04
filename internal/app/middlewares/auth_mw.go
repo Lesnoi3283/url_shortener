@@ -63,6 +63,7 @@ type UserCreater interface {
 	CreateUser(ctx context.Context) (int, error)
 }
 
+// AuthMW parses AuthJWT from cookie and puts UserID to http.Request.Context values.
 func AuthMW(store UserCreater, logger zap.SugaredLogger) func(handlerFunc http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

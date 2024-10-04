@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// NewRouter builds new chi.Router with handlers. User just have to run it with http.ListenAndServe or something else.
 func NewRouter(conf config.Config, store URLStorageInterface, logger zap.SugaredLogger) chi.Router {
 	r := chi.NewRouter()
 

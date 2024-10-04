@@ -11,6 +11,7 @@ type PingDBHandler struct {
 	//todo: log
 }
 
+// PingDBHandler.ServeHTTP returns http.StatusOK if database is active.
 func (p *PingDBHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	err := p.DB.Ping()
 	if err != nil {

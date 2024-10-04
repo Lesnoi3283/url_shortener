@@ -18,6 +18,7 @@ func (w gzipWriter) Write(b []byte) (int, error) {
 	return w.Writer.Write(b)
 }
 
+// CompressionMW decodes a compressed request and encodes response if "Accept-Encoding" cookie is set.
 func CompressionMW(logger zap.SugaredLogger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
