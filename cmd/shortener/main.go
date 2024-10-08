@@ -34,8 +34,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("logger was not started, err: %v", err)
 	}
-
-	//config set
 	zCfg := zap.NewProductionConfig()
 	zCfg.Level = logLevel
 	zCfg.DisableStacktrace = true
