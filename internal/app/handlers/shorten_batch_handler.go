@@ -62,14 +62,14 @@ func (h *ShortenBatchHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 		urlShort := string(ShortenURL(bodyBytes))
 
 		URLsToSave = append(URLsToSave, entities.URL{
-			Short: h.Conf.BaseAddress + "/" + urlShort,
+			Short: urlShort,
 			Long:  url.OriginalURL,
 		})
 		//URLsToReturn = append(URLsToReturn, URLShorten{
 		//	CorrelationID: URLsGot[i].CorrelationID,
 		//	ShortURL:      h.Conf.BaseAddress + "/" + urlShort,
 		//}) //optimizing:
-		URLsGot[i].ShortURL = urlShort
+		URLsGot[i].ShortURL = h.Conf.BaseAddress + "/" + urlShort
 		URLsGot[i].OriginalURL = ""
 	}
 
@@ -88,12 +88,12 @@ func (h *ShortenBatchHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 	}
 
 	//response making
-	jsonResponce, err := json.Marshal(URLsGot)
+	jsonResponse, err := json.Marshal(URLsGot)
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		log.Default().Println("Error during marshalling JSON responce")
 	}
 	res.Header().Set("Content-Type", "application/json")
 	res.WriteHeader(http.StatusCreated)
-	res.Write(jsonResponce)
+	res.Write(jsonResponse)
 }

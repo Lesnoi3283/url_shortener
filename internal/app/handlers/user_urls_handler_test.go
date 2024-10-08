@@ -182,7 +182,7 @@ func TestUserURLsHandler_ServeHTTP(t *testing.T) {
 			}
 			h.ServeHTTP(tt.args.res, tt.args.req)
 			assert.Equal(t, tt.fields.StatusWant, tt.args.res.Code)
-			assert.Equal(t, tt.fields.BodyWant, string(tt.args.res.Body.Bytes()))
+			assert.Equal(t, tt.fields.BodyWant, tt.args.res.Body.String())
 		})
 	}
 }
