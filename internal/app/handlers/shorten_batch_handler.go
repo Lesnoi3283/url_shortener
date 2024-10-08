@@ -59,7 +59,7 @@ func (h *ShortenBatchHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 		//hasher.Write([]byte(url.OriginalURL))
 		//urlShort := fmt.Sprintf("%x", hasher.Sum(nil))
 		//urlShort = urlShort[:16]
-		urlShort := string(ShortenURL(bodyBytes))
+		urlShort := string(ShortenURL([]byte(url.OriginalURL)))
 
 		URLsToSave = append(URLsToSave, entities.URL{
 			Short: urlShort,
