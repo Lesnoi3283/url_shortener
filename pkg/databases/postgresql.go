@@ -4,14 +4,17 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+
 	"github.com/Lesnoi3283/url_shortener/internal/app/entities"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
+// Postgresql is a struct witch has some functions to work with PostgreSQL database.
 type Postgresql struct {
 	store *sql.DB
 }
 
+// build a new Postgresql.
 func NewPostgresql(connStr string) (*Postgresql, error) {
 	db, err := sql.Open("pgx", connStr)
 	if err != nil {
@@ -47,6 +50,7 @@ func NewPostgresql(connStr string) (*Postgresql, error) {
 	return toRet, nil
 }
 
+// Save saves a new url to a storage.
 func (p *Postgresql) Save(ctx context.Context, url entities.URL) error {
 	query := "INSERT INTO user_urls_table (long, short) VALUES ($1, $2) ON CONFLICT (long) DO NOTHING;"
 
@@ -75,6 +79,7 @@ func (p *Postgresql) Save(ctx context.Context, url entities.URL) error {
 	return nil
 }
 
+// SaveWithUserID saves a URL with userID.
 func (p *Postgresql) SaveWithUserID(ctx context.Context, userID int, url entities.URL) error {
 	query := "INSERT INTO user_urls_table (user_id, long, short) VALUES ($1, $2, $3) ON CONFLICT (long) DO NOTHING;"
 
@@ -102,6 +107,7 @@ func (p *Postgresql) SaveWithUserID(ctx context.Context, userID int, url entitie
 	return nil
 }
 
+// SaveBatch saves a batch of URLs.
 func (p *Postgresql) SaveBatch(ctx context.Context, urls []entities.URL) error {
 	tx, err := p.store.Begin()
 	if err != nil {
@@ -124,6 +130,7 @@ func (p *Postgresql) SaveBatch(ctx context.Context, urls []entities.URL) error {
 	return nil
 }
 
+// SaveBatchWithUserID save a batch of URLs with userID.
 func (p *Postgresql) SaveBatchWithUserID(ctx context.Context, userID int, urls []entities.URL) error {
 	tx, err := p.store.BeginTx(ctx, nil)
 	if err != nil {
@@ -147,6 +154,7 @@ func (p *Postgresql) SaveBatchWithUserID(ctx context.Context, userID int, urls [
 	return nil
 }
 
+// DeleteBatchWithUserID deletes a batch of URLs (if their userID matches with given one).
 func (p *Postgresql) DeleteBatchWithUserID(userID int) (urlsChan chan string, err error) {
 	tx, err := p.store.BeginTx(context.TODO(), nil)
 	if err != nil {
@@ -173,6 +181,7 @@ func (p *Postgresql) DeleteBatchWithUserID(userID int) (urlsChan chan string, er
 	return urlsChan, nil
 }
 
+// Get returns an original URL using it`s short version.
 func (p *Postgresql) Get(ctx context.Context, short string) (full string, err error) {
 
 	query := "SELECT long, is_deleted  FROM user_urls_table WHERE short = $1;"
@@ -190,6 +199,7 @@ func (p *Postgresql) Get(ctx context.Context, short string) (full string, err er
 	return full, nil
 }
 
+// GetUserUrls returns all URLs of a user.
 func (p *Postgresql) GetUserUrls(ctx context.Context, userID int) ([]entities.URL, error) {
 	query := "SELECT long, short FROM user_urls_table WHERE user_id = $1;"
 
@@ -216,14 +226,17 @@ func (p *Postgresql) GetUserUrls(ctx context.Context, userID int) ([]entities.UR
 	return urls, nil
 }
 
+// Ping func pings real database and returns the answer.
 func (p *Postgresql) Ping() error {
 	return p.store.Ping()
 }
 
+// Close closes connection to a database.
 func (p *Postgresql) Close() error {
 	return p.store.Close()
 }
 
+// CreateUser creates a new user and saves it in a database.
 func (p *Postgresql) CreateUser(ctx context.Context) (int, error) {
 	query := "INSERT INTO users DEFAULT VALUES RETURNING id;"
 

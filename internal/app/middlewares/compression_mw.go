@@ -1,22 +1,26 @@
 package middlewares
 
 import (
+	"bytes"
 	"compress/gzip"
-	"go.uber.org/zap"
 	"io"
 	"net/http"
-	"strings"
+
+	"go.uber.org/zap"
 )
 
+// gzipWriter is a decorator to a http.ResponseWriter witch encodes data before writing it.
 type gzipWriter struct {
 	http.ResponseWriter
 	Writer io.Writer
 }
 
+// Write encodes a response and then writes it to a http.responseWriter.
 func (w gzipWriter) Write(b []byte) (int, error) {
 	return w.Writer.Write(b)
 }
 
+// CompressionMW decodes a compressed request and encodes response if "Accept-Encoding" cookie is set.
 func CompressionMW(logger zap.SugaredLogger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -37,11 +41,11 @@ func CompressionMW(logger zap.SugaredLogger) func(next http.Handler) http.Handle
 					w.WriteHeader(http.StatusInternalServerError)
 					return
 				}
-				logger.Info(zap.Int("Decomressed data size", len(decompressed)))
+				//logger.Debug(zap.Int("Decomressed data size", len(decompressed)))
 
 				// data replacement
 				r.Body.Close()
-				r.Body = io.NopCloser(strings.NewReader(string(decompressed)))
+				r.Body = io.NopCloser(bytes.NewReader(decompressed))
 
 			} else if encoding != "" {
 				logger.Infof("Unsupported compression type `%s`", encoding)
