@@ -45,7 +45,6 @@ func (j *JustAMap) SaveBatchWithUserID(ctx context.Context, userID int, urls []e
 }
 
 // DeleteBatchWithUserID deletes a batch of URLs (if their userID matches with given one).
-
 func (j *JustAMap) DeleteBatchWithUserID(userID int) (urlsChan chan string, err error) {
 	urlsChan = make(chan string)
 	return urlsChan, ErrThisFuncIsNotSupported()

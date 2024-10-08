@@ -10,12 +10,16 @@ import (
 	"go.uber.org/zap"
 )
 
-const TokenExp = time.Hour * 3
-const SecretKey = "supersecretkey"
-const JwtCookieName = "JWT"
+// JWT params.
+const (
+	TokenExp      = time.Hour * 3
+	SecretKey     = "supersecretkey"
+	JwtCookieName = "JWT"
+)
 
 type contextKey string
 
+// UserIDContextKey is a key to get a userID from context values.
 const UserIDContextKey contextKey = "userID"
 
 // Claims is a jwt.RegisteredClaims struct with custom field "Claims.UserID".

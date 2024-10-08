@@ -5,11 +5,14 @@ import (
 	"os"
 )
 
-const DefaultBaseAddress = "http://localhost:8080"
-const DefaultServerAddress = "localhost:8080"
-const DefaultLogLevel = "info"
-const DefaultFileStoragePath = "/tmp/short-url-db.json"
-const DefaultDBConnectionString = ""
+// Default configurations params.
+const (
+	DefaultBaseAddress        = "http://localhost:8080"
+	DefaultServerAddress      = "localhost:8080"
+	DefaultLogLevel           = "info"
+	DefaultFileStoragePath    = "/tmp/short-url-db.json"
+	DefaultDBConnectionString = ""
+)
 
 // Config is a struct with configuration params.
 type Config struct {
