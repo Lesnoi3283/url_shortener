@@ -12,6 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// ShortenBatchHandler is a handler struct. Use it`s ServeHTTP func.
 type ShortenBatchHandler struct {
 	URLStorage URLStorageInterface
 	Conf       config.Config

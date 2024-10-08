@@ -9,12 +9,14 @@ import (
 	"go.uber.org/zap"
 )
 
+// UserURLsHandler is a handler struct. Use it`s ServeHTTP func.
 type UserURLsHandler struct {
 	URLStorage URLStorageInterface
 	Conf       config.Config
 	Logger     zap.SugaredLogger
 }
 
+// URLData is a struct witch will help you to read a request body in a request to UserURLsHandler.
 type URLData struct {
 	ShortURL    string `json:"short_url"`
 	OriginalURL string `json:"original_url"`

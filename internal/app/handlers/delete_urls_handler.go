@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// DeleteURLsHandler is a handler struct. Use it`s ServeHTTP func.
 type DeleteURLsHandler struct {
 	URLStorage URLStorageInterface
 	Conf       config.Config

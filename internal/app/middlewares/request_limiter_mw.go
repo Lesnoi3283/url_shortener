@@ -11,6 +11,7 @@ import (
 
 var errLimitReached error = errors.New("limit reached")
 
+// NewLimitReachedError returns an errLimitReached error witch can be checked using errors.Is func
 func NewLimitReachedError() error {
 	return errLimitReached
 }
@@ -21,6 +22,8 @@ type Requestik struct {
 	next *Requestik
 }
 
+// RequestManager is a config struct to a RequestLimiterMW. Use NewRequestManager to build it.
+// Also it has a pointer to a first and last Requestik.
 type RequestManager struct {
 	mutex     sync.RWMutex
 	amount    int

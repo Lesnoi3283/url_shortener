@@ -9,11 +9,13 @@ import (
 	"go.uber.org/zap"
 )
 
+// gzipWriter is a decorator to a http.ResponseWriter witch encodes data before writing it.
 type gzipWriter struct {
 	http.ResponseWriter
 	Writer io.Writer
 }
 
+// Write encodes a response and then writes it to a http.responseWriter.
 func (w gzipWriter) Write(b []byte) (int, error) {
 	return w.Writer.Write(b)
 }

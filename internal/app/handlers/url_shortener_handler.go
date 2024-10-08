@@ -16,7 +16,7 @@ import (
 
 //go:generate mockgen -source=url_shortener_handler.go -destination=mocks/mock_DBInterface.go -package=mocks github.com/Lesnoi3283/url_shortener/internal/app/handlers URLStorageInterface
 
-// URLStorageInterface is a main database interface
+// URLStorageInterface is a main database interface.
 type URLStorageInterface interface {
 	Save(ctx context.Context, url entities.URL) error
 	SaveBatch(ctx context.Context, urls []entities.URL) error
@@ -29,6 +29,7 @@ type URLStorageInterface interface {
 	CreateUser(ctx context.Context) (int, error)
 }
 
+// ShortURLRedirectHandler is a handler struct. Use it`s ServeHTTP func.
 type ShortURLRedirectHandler struct {
 	URLStorage URLStorageInterface
 }
@@ -55,6 +56,7 @@ func (h *ShortURLRedirectHandler) ServeHTTP(res http.ResponseWriter, req *http.R
 	res.WriteHeader(http.StatusTemporaryRedirect)
 }
 
+// URLShortenerHandler is a handler struct. Use it`s ServeHTTP func.
 type URLShortenerHandler struct {
 	Conf       config.Config
 	URLStorage URLStorageInterface

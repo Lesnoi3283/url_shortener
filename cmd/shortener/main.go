@@ -13,7 +13,7 @@ import (
 func main() {
 	//conf
 	conf := config.Config{}
-	conf.Configurate()
+	conf.Configure()
 
 	//storages set
 	var URLStore handlers.URLStorageInterface

@@ -18,11 +18,13 @@ type contextKey string
 
 const UserIDContextKey contextKey = "userID"
 
+// Claims is a jwt.RegisteredClaims struct with custom field "Claims.UserID".
 type Claims struct {
 	jwt.RegisteredClaims
 	UserID int
 }
 
+// BuildNewJWTString returns new JWT string with userID inside.
 func BuildNewJWTString(userID int) (string, error) {
 	claims := Claims{RegisteredClaims: jwt.RegisteredClaims{
 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(TokenExp)),
@@ -40,6 +42,7 @@ func BuildNewJWTString(userID int) (string, error) {
 	return stringToken, nil
 }
 
+// GetUserID parses JWT and returns a userID from it.
 func GetUserID(tokenString string) int {
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims,
@@ -59,6 +62,7 @@ func GetUserID(tokenString string) int {
 
 //go:generate mockgen -source=auth_mw.go -destination=mocks/mocks_AuthMW.go -package=mocks_MW github.com/Lesnoi3283/url_shortener/internal/app/middlewares UserCreater
 
+// UserCreater can create a new user.
 type UserCreater interface {
 	CreateUser(ctx context.Context) (int, error)
 }

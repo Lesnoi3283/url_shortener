@@ -14,6 +14,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// ShortenHandler is a handler struct. Use it`s ServeHTTP func.
 type ShortenHandler struct {
 	URLStorage URLStorageInterface
 	Conf       config.Config
