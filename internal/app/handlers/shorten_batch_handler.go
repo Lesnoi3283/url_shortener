@@ -62,7 +62,7 @@ func (h *ShortenBatchHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 		urlShort := string(ShortenURL(bodyBytes))
 
 		URLsToSave = append(URLsToSave, entities.URL{
-			Short: urlShort,
+			Short: h.Conf.BaseAddress + "/" + urlShort,
 			Long:  url.OriginalURL,
 		})
 		//URLsToReturn = append(URLsToReturn, URLShorten{
