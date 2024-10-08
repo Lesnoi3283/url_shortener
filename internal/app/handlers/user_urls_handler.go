@@ -2,27 +2,23 @@ package handlers
 
 import (
 	"encoding/json"
-	"net/http"
-
 	"github.com/Lesnoi3283/url_shortener/config"
 	"github.com/Lesnoi3283/url_shortener/internal/app/middlewares"
 	"go.uber.org/zap"
+	"net/http"
 )
 
-// UserURLsHandler is a handler struct. Use it`s ServeHTTP func.
 type UserURLsHandler struct {
 	URLStorage URLStorageInterface
 	Conf       config.Config
 	Logger     zap.SugaredLogger
 }
 
-// URLData is a struct witch will help you to read a request body in a request to UserURLsHandler.
 type URLData struct {
 	ShortURL    string `json:"short_url"`
 	OriginalURL string `json:"original_url"`
 }
 
-// UserURLsHandler.ServeHTTP returns a JSON array with all users`s urls.
 func (h *UserURLsHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 
 	cookie, err := req.Cookie(middlewares.JwtCookieName)
@@ -36,9 +32,8 @@ func (h *UserURLsHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) 
 	token := cookie.Value
 	userID := middlewares.GetUserID(token)
 	if userID == -1 {
-		h.Logger.Error("UserURLsHandler just got user id `-1` somehow. Probably JWT is not valid")
-		//res.WriteHeader(http.StatusInternalServerError)
-		res.WriteHeader(http.StatusUnauthorized)
+		h.Logger.Error("UserURLsHandler just got user id `-1` somehow")
+		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 

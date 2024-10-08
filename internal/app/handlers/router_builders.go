@@ -5,9 +5,9 @@ import (
 	"github.com/Lesnoi3283/url_shortener/internal/app/middlewares"
 	"github.com/go-chi/chi"
 	"go.uber.org/zap"
+	"time"
 )
 
-// NewRouter builds new chi.Router with handlers. User just have to run it with http.ListenAndServe or something else.
 func NewRouter(conf config.Config, store URLStorageInterface, logger zap.SugaredLogger) chi.Router {
 	r := chi.NewRouter()
 
@@ -44,8 +44,8 @@ func NewRouter(conf config.Config, store URLStorageInterface, logger zap.Sugared
 	}
 
 	r.Use(middlewares.LoggerMW(logger))
-	//requestManager := middlewares.NewRequestManager(100, time.Minute)
-	//r.Use(middlewares.RequestLimiterMW(logger, requestManager)) //лимитер был реализован ради эксперимента
+	requestManager := middlewares.NewRequestManager(100, time.Minute)
+	r.Use(middlewares.RequestLimiterMW(logger, requestManager)) //лимитер был реализован ради эксперимента
 	r.Use(middlewares.CompressionMW(logger))
 	r.Use(middlewares.AuthMW(store, logger))
 

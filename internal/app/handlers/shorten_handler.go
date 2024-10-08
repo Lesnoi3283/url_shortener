@@ -1,27 +1,26 @@
 package handlers
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
-	"io"
-	"log"
-	"net/http"
-
+	"fmt"
 	"github.com/Lesnoi3283/url_shortener/config"
 	"github.com/Lesnoi3283/url_shortener/internal/app/entities"
 	"github.com/Lesnoi3283/url_shortener/internal/app/middlewares"
 	"github.com/Lesnoi3283/url_shortener/pkg/databases"
 	"go.uber.org/zap"
+	"io"
+	"log"
+	"net/http"
 )
 
-// ShortenHandler is a handler struct. Use it`s ServeHTTP func.
 type ShortenHandler struct {
 	URLStorage URLStorageInterface
 	Conf       config.Config
 	Log        zap.SugaredLogger
 }
 
-// ShortenHandler.ServeHTTP shorts given url (JSON), saves it in a storage and return a short version.
 func (h *ShortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	//this var is using for changing status to 409 if url already exists
 	successStatus := http.StatusCreated
@@ -48,11 +47,10 @@ func (h *ShortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	}
 
 	//url shorting
-	//hasher := sha256.New()
-	//hasher.Write(bodyBytes)
-	//urlShort := fmt.Sprintf("%x", hasher.Sum(nil))
-	//urlShort = urlShort[:16]
-	urlShort := string(ShortenURL(bodyBytes))
+	hasher := sha256.New()
+	hasher.Write(bodyBytes)
+	urlShort := fmt.Sprintf("%x", hasher.Sum(nil))
+	urlShort = urlShort[:16]
 
 	//url saving
 	userIDFromContext := req.Context().Value(middlewares.UserIDContextKey)

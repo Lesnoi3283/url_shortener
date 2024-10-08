@@ -2,21 +2,21 @@ package handlers
 
 import (
 	"context"
+	"crypto/sha256"
 	"errors"
-	"io"
-	"log"
-	"net/http"
-
+	"fmt"
 	"github.com/Lesnoi3283/url_shortener/config"
 	"github.com/Lesnoi3283/url_shortener/internal/app/entities"
 	"github.com/Lesnoi3283/url_shortener/internal/app/middlewares"
 	"github.com/Lesnoi3283/url_shortener/pkg/databases"
 	"github.com/go-chi/chi"
+	"io"
+	"log"
+	"net/http"
 )
 
 //go:generate mockgen -source=url_shortener_handler.go -destination=mocks/mock_DBInterface.go -package=mocks github.com/Lesnoi3283/url_shortener/internal/app/handlers URLStorageInterface
 
-// URLStorageInterface is a main database interface.
 type URLStorageInterface interface {
 	Save(ctx context.Context, url entities.URL) error
 	SaveBatch(ctx context.Context, urls []entities.URL) error
@@ -29,12 +29,10 @@ type URLStorageInterface interface {
 	CreateUser(ctx context.Context) (int, error)
 }
 
-// ShortURLRedirectHandler is a handler struct. Use it`s ServeHTTP func.
 type ShortURLRedirectHandler struct {
 	URLStorage URLStorageInterface
 }
 
-// ShortURLRedirectHandler.ServeHTTP reads short URL from given URLParam and redirects user to an original URL.
 func (h *ShortURLRedirectHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	//reading data from request
 	shorted := chi.URLParam(req, "url")
@@ -56,33 +54,32 @@ func (h *ShortURLRedirectHandler) ServeHTTP(res http.ResponseWriter, req *http.R
 	res.WriteHeader(http.StatusTemporaryRedirect)
 }
 
-// URLShortenerHandler is a handler struct. Use it`s ServeHTTP func.
 type URLShortenerHandler struct {
 	Conf       config.Config
 	URLStorage URLStorageInterface
 }
 
-// URLShortenerHandler.ServeHTTP shorts a given URL (plain text), saves it in a storage and returns a short version.
 func (h *URLShortenerHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	//this var is necessary. Because it helps to change status code to 409 if url already exists
 	successStatus := http.StatusCreated
 
 	//read request params
-	realURLBytes, err := io.ReadAll(req.Body)
+	str, err := io.ReadAll(req.Body)
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		log.Default().Println("Error while reading reqBody")
 		return
 	}
 
+	realURL := string(str)
+
 	//url shorting
-	//hasher := sha256.New()
-	//hasher.Write(str)
-	//urlShort := fmt.Sprintf("%x", hasher.Sum(nil)) //optimizing:
-	urlShort := string(ShortenURL(realURLBytes))
+	hasher := sha256.New()
+	hasher.Write(str)
+	urlShort := fmt.Sprintf("%x", hasher.Sum(nil))
+	urlShort = urlShort[:16]
 
 	//url saving
-	realURL := string(realURLBytes)
 	userIDFromContext := req.Context().Value(middlewares.UserIDContextKey)
 	userID, ok := (userIDFromContext).(int)
 	if (userIDFromContext != nil) && (ok) {
@@ -97,21 +94,20 @@ func (h *URLShortenerHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 		})
 	}
 
-	if err != nil {
-		var alrExErr *databases.AlreadyExistsError
-		if errors.As(err, &alrExErr) {
-			urlShort = alrExErr.ShortURL
-			successStatus = http.StatusConflict
-		} else {
-			res.WriteHeader(http.StatusInternalServerError)
-			log.Default().Println("Error while saving to DB")
-			log.Default().Println(err)
-			return
-		}
+	var alrExErr *databases.AlreadyExistsError
+	if errors.As(err, &alrExErr) {
+		urlShort = alrExErr.ShortURL
+		successStatus = http.StatusConflict
+	} else if err != nil {
+		res.WriteHeader(http.StatusInternalServerError)
+		log.Default().Println("Error while saving to DB")
+		log.Default().Println(err)
+		return
 	}
 
 	//response making
 	res.Header().Set("Content-Type", "text/plain")
+	toRet := h.Conf.BaseAddress + "/" + urlShort
 	res.WriteHeader(successStatus)
-	res.Write([]byte(h.Conf.BaseAddress + "/" + urlShort))
+	res.Write([]byte(toRet))
 }
