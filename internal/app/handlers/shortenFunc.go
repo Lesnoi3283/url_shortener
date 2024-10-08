@@ -11,7 +11,7 @@ func ShortenURL(url []byte) []byte {
 	hasher.Write(url)
 	//urlShort := fmt.Sprintf("%x", hasher.Sum(nil)) //optimizing:
 	sum := hasher.Sum(nil)
-	for i, _ := range sum {
+	for i := range sum {
 		sum[i] = (sum[i] % 26) + 'a' // from 'a' to 'z'
 	}
 	return sum[:defaultShortURLLen]
