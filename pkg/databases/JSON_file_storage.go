@@ -7,10 +7,11 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	"github.com/Lesnoi3283/url_shortener/internal/app/entities"
 	"os"
 	"sync"
 	"time"
+
+	"github.com/Lesnoi3283/url_shortener/internal/app/entities"
 )
 
 type data struct {
@@ -21,17 +22,20 @@ type data struct {
 	WasDeleted bool   `json:"was_deleted"`
 }
 
+// JSONFileStorage is storage witch uses a file to store data. It writes a JSON arrays to it. Thread-safe.
 type JSONFileStorage struct {
 	Path   string
 	lastID int
 	mutex  sync.Mutex
 }
 
+// NewJSONFileStorage build a new JSONFileStorage.
 func NewJSONFileStorage(path string) *JSONFileStorage {
 	toRet := &JSONFileStorage{Path: path}
 	return toRet
 }
 
+// Save saves a new url to a storage.
 func (j *JSONFileStorage) Save(ctx context.Context, url entities.URL) error {
 	j.mutex.Lock()
 	defer j.mutex.Unlock()
@@ -83,6 +87,7 @@ func (j *JSONFileStorage) Save(ctx context.Context, url entities.URL) error {
 	return nil
 }
 
+// SaveWithUserID saves a URL with userID.
 func (j *JSONFileStorage) SaveWithUserID(ctx context.Context, userID int, url entities.URL) error {
 	j.mutex.Lock()
 	defer j.mutex.Unlock()
@@ -135,6 +140,7 @@ func (j *JSONFileStorage) SaveWithUserID(ctx context.Context, userID int, url en
 	return nil
 }
 
+// SaveBatch saves a batch of URLs.
 func (j *JSONFileStorage) SaveBatch(ctx context.Context, urls []entities.URL) error {
 	j.mutex.Lock()
 	defer j.mutex.Unlock()
@@ -192,6 +198,7 @@ func (j *JSONFileStorage) SaveBatch(ctx context.Context, urls []entities.URL) er
 	return nil
 }
 
+// SaveBatchWithUserID save a batch of URLs with userID.
 func (j *JSONFileStorage) SaveBatchWithUserID(ctx context.Context, userID int, urls []entities.URL) error {
 	j.mutex.Lock()
 	defer j.mutex.Unlock()
@@ -250,11 +257,13 @@ func (j *JSONFileStorage) SaveBatchWithUserID(ctx context.Context, userID int, u
 	return nil
 }
 
+// DeleteBatchWithUserID deletes a batch of URLs (if their userID matches with given one).
 func (j *JSONFileStorage) DeleteBatchWithUserID(userID int) (urlsChan chan string, err error) {
 	urlsChan = make(chan string)
 	return urlsChan, ErrThisFuncIsNotSupported()
 }
 
+// GetUserUrls returns all URLs of a user.
 func (j *JSONFileStorage) GetUserUrls(ctx context.Context, userID int) (URLs []entities.URL, err error) {
 	j.mutex.Lock()
 	defer j.mutex.Unlock()
@@ -285,6 +294,7 @@ func (j *JSONFileStorage) GetUserUrls(ctx context.Context, userID int) (URLs []e
 	return URLs, err
 }
 
+// Get returns an original URL using it`s short version.
 func (j *JSONFileStorage) Get(ctx context.Context, key string) (string, error) {
 	j.mutex.Lock()
 	defer j.mutex.Unlock()
@@ -315,11 +325,13 @@ func (j *JSONFileStorage) Get(ctx context.Context, key string) (string, error) {
 	return "", err
 }
 
+// Ping always returns true.
 func (j *JSONFileStorage) Ping() error {
 	return nil
 }
 
-// because it actually a session id, not a user id
+// CreateUser returns just a random int and doesn`t saves anything.
+// Because it`s actually a session id, not a user id.
 func (j *JSONFileStorage) CreateUser(ctx context.Context) (int, error) {
 	t := time.Now()
 	timeBytes := []byte(t.Format(time.RFC3339Nano))

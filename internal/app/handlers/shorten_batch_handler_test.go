@@ -2,16 +2,19 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/Lesnoi3283/url_shortener/config"
-	"github.com/Lesnoi3283/url_shortener/pkg/databases"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/zap/zaptest"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/Lesnoi3283/url_shortener/config"
+	"github.com/Lesnoi3283/url_shortener/internal/app/handlers/mocks"
+	"github.com/Lesnoi3283/url_shortener/pkg/databases"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zaptest"
 )
 
 func TestShortenBatchHandler_ServeHTTP(t *testing.T) {
@@ -50,8 +53,7 @@ func TestShortenBatchHandler_ServeHTTP(t *testing.T) {
 		ServerAddress: "localhost:8080",
 		LogLevel:      "info",
 	}
-	//URLStore, err := postgresql.NewPostgresql("host=localhost user=yaurlshortenet password=123 dbname=urlshortenerdb sslmode=disable")
-	//require.NoError(t, err)
+
 	URLStore := databases.NewJustAMap()
 
 	zapTestLogger := zaptest.NewLogger(t)
@@ -106,5 +108,36 @@ func TestShortenBatchHandler_ServeHTTP(t *testing.T) {
 			}
 
 		})
+	}
+}
+
+func BenchmarkShortenBatchHandler_ServeHTTP(b *testing.B) {
+
+	c := gomock.NewController(b)
+	defer c.Finish()
+	storage := mocks.NewMockURLStorageInterface(c)
+	storage.EXPECT().SaveBatch(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+
+	logger := zaptest.NewLogger(b)
+	sugar := logger.Sugar()
+
+	handler := ShortenBatchHandler{
+		URLStorage: storage,
+		Conf: config.Config{
+			BaseAddress:   "http://localhost:8080",
+			ServerAddress: "localhost:8080",
+			LogLevel:      "info",
+		},
+		Log: *sugar,
+	}
+
+	reqBody := `[
+                {"correlation_id": "1", "original_url": "https://example.com"},
+                {"correlation_id": "2", "original_url": "https://example.org"}
+            ]`
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		handler.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest("GET", "/api/shorten/batch", strings.NewReader(reqBody)))
 	}
 }

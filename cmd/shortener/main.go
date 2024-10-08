@@ -1,18 +1,19 @@
 package main
 
 import (
+	"log"
+	"net/http"
+
 	"github.com/Lesnoi3283/url_shortener/config"
 	"github.com/Lesnoi3283/url_shortener/internal/app/handlers"
 	"github.com/Lesnoi3283/url_shortener/pkg/databases"
 	"go.uber.org/zap"
-	"log"
-	"net/http"
 )
 
 func main() {
 	//conf
 	conf := config.Config{}
-	conf.Configurate()
+	conf.Configure()
 
 	//storages set
 	var URLStore handlers.URLStorageInterface
@@ -33,8 +34,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("logger was not started, err: %v", err)
 	}
-
-	//config set
 	zCfg := zap.NewProductionConfig()
 	zCfg.Level = logLevel
 	zCfg.DisableStacktrace = true

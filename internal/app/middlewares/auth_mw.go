@@ -3,25 +3,32 @@ package middlewares
 import (
 	"context"
 	"fmt"
-	"github.com/golang-jwt/jwt/v4"
-	"go.uber.org/zap"
 	"net/http"
 	"time"
+
+	"github.com/golang-jwt/jwt/v4"
+	"go.uber.org/zap"
 )
 
-const TokenExp = time.Hour * 3
-const SecretKey = "supersecretkey"
-const JwtCookieName = "JWT"
+// JWT params.
+const (
+	TokenExp      = time.Hour * 3
+	SecretKey     = "supersecretkey"
+	JwtCookieName = "JWT"
+)
 
 type contextKey string
 
+// UserIDContextKey is a key to get a userID from context values.
 const UserIDContextKey contextKey = "userID"
 
+// Claims is a jwt.RegisteredClaims struct with custom field "Claims.UserID".
 type Claims struct {
 	jwt.RegisteredClaims
 	UserID int
 }
 
+// BuildNewJWTString returns new JWT string with userID inside.
 func BuildNewJWTString(userID int) (string, error) {
 	claims := Claims{RegisteredClaims: jwt.RegisteredClaims{
 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(TokenExp)),
@@ -39,6 +46,7 @@ func BuildNewJWTString(userID int) (string, error) {
 	return stringToken, nil
 }
 
+// GetUserID parses JWT and returns a userID from it.
 func GetUserID(tokenString string) int {
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims,
@@ -56,10 +64,14 @@ func GetUserID(tokenString string) int {
 	return claims.UserID
 }
 
+//go:generate mockgen -source=auth_mw.go -destination=mocks/mocks_AuthMW.go -package=mocks_MW github.com/Lesnoi3283/url_shortener/internal/app/middlewares UserCreater
+
+// UserCreater can create a new user.
 type UserCreater interface {
 	CreateUser(ctx context.Context) (int, error)
 }
 
+// AuthMW parses AuthJWT from cookie and puts UserID to http.Request.Context values.
 func AuthMW(store UserCreater, logger zap.SugaredLogger) func(handlerFunc http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
