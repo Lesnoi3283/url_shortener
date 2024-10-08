@@ -5,16 +5,12 @@ import (
 	"os"
 )
 
-// Default configurations params.
-const (
-	DefaultBaseAddress        = "http://localhost:8080"
-	DefaultServerAddress      = "localhost:8080"
-	DefaultLogLevel           = "info"
-	DefaultFileStoragePath    = "/tmp/short-url-db.json"
-	DefaultDBConnectionString = ""
-)
+const DefaultBaseAddress = "http://localhost:8080"
+const DefaultServerAddress = "localhost:8080"
+const DefaultLogLevel = "info"
+const DefaultFileStoragePath = "/tmp/short-url-db.json"
+const DefaultDBConnectionString = ""
 
-// Config is a struct with configuration params.
 type Config struct {
 	BaseAddress     string
 	ServerAddress   string
@@ -23,9 +19,7 @@ type Config struct {
 	DBConnString    string
 }
 
-// Configure reads configuration params from command line args, environmental variables and DefaultConstParams.
-// And writes them into a Config struct.
-func (c *Config) Configure() {
+func (c *Config) Configurate() {
 	flag.StringVar(&(c.ServerAddress), "a", DefaultServerAddress, "Address where server will work. Example: \"localhost:8080\".")
 	flag.StringVar(&(c.BaseAddress), "b", DefaultBaseAddress, "Base address before a shorted url")
 	flag.StringVar(&(c.LogLevel), "l", DefaultLogLevel, "Log level")
