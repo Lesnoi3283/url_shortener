@@ -21,7 +21,7 @@ type ShortenHandler struct {
 	Log        zap.SugaredLogger
 }
 
-// ShortenHandler.ServeHTTP shorts given url (JSON), saves it in a storage and return a short version.
+// ServeHTTP shorts given url (JSON), saves it in a storage and return a short version.
 func (h *ShortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	//this var is using for changing status to 409 if url already exists
 	successStatus := http.StatusCreated

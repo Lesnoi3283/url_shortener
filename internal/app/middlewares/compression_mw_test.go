@@ -3,7 +3,6 @@ package middlewares
 import (
 	"bytes"
 	"compress/gzip"
-	"context"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -170,12 +169,4 @@ func BenchmarkCompressionMW(b *testing.B) {
 			testable.ServeHTTP(w, requestNoEncoding)
 		}
 	})
-}
-
-func foo(ctx context.Context) {
-	select {
-	case <-ctx.Done():
-	default:
-		return
-	}
 }

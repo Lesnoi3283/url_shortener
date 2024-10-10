@@ -1,3 +1,4 @@
+// Package handlers includes all handlers for the url_shortener server.
 package handlers
 
 import (
@@ -16,7 +17,7 @@ type DeleteURLsHandler struct {
 	Log        zap.SugaredLogger
 }
 
-// DeleteURLsHandler.ServeHTTP deletes all given URLs (in JSON). Only for authorised users.
+// ServeHTTP deletes all given URLs (in JSON). Only for authorised users.
 // If given URL was created by different user - nothing would be deleted.
 func (h *DeleteURLsHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	//read request params

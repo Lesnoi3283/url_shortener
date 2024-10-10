@@ -1,3 +1,4 @@
+// Package databases contains all supported database adapters in this project.
 package databases
 
 import (
