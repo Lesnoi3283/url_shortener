@@ -79,7 +79,7 @@ func (h *URLShortenerHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 	//hasher := sha256.New()
 	//hasher.Write(str)
 	//urlShort := fmt.Sprintf("%x", hasher.Sum(nil)) //optimizing:
-	urlShort := string(ShortenURL(realURLBytes))
+	urlShort := string(shortenURL(realURLBytes))
 
 	//url saving
 	realURL := string(realURLBytes)

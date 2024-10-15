@@ -23,7 +23,7 @@ func TestShortenURL(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := ShortenURL(tt.args.url)
+			result := shortenURL(tt.args.url)
 			for _, b := range result {
 				isLetter := (b <= 'z') && (b >= 'A')
 				require.Truef(t, isLetter, "found a strange byte (not a letter) '%c' in str '%s'", b, result)

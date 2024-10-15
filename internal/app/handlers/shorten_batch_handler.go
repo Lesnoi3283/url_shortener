@@ -37,50 +37,36 @@ func (h *ShortenBatchHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 		ShortURL      string `json:"short_url"`
 	}
 
-	URLsGot := make([]URLGot, 0)
+	urlsGot := make([]URLGot, 0)
 
-	err = json.Unmarshal(bodyBytes, &URLsGot)
+	err = json.Unmarshal(bodyBytes, &urlsGot)
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		h.Log.Error("Error during unmarshalling JSON")
 		return
 	}
 
-	//type URLShorten struct {
-	//	CorrelationID string `json:"correlation_id"`
-	//	ShortURL      string `json:"short_url"`
-	//}
+	urlsToSave := make([]entities.URL, 0)
 
-	URLsToSave := make([]entities.URL, 0)
-	//URLsToReturn := make([]URLShorten, 0)
-
-	for i, url := range URLsGot {
+	for i, url := range urlsGot {
 		//url shorting
-		//hasher := sha256.New()
-		//hasher.Write([]byte(url.OriginalURL))
-		//urlShort := fmt.Sprintf("%x", hasher.Sum(nil))
-		//urlShort = urlShort[:16]
-		urlShort := string(ShortenURL([]byte(url.OriginalURL)))
+		urlShort := string(shortenURL([]byte(url.OriginalURL)))
 
-		URLsToSave = append(URLsToSave, entities.URL{
+		urlsToSave = append(urlsToSave, entities.URL{
 			Short: urlShort,
 			Long:  url.OriginalURL,
 		})
-		//URLsToReturn = append(URLsToReturn, URLShorten{
-		//	CorrelationID: URLsGot[i].CorrelationID,
-		//	ShortURL:      h.Conf.BaseAddress + "/" + urlShort,
-		//}) //optimizing:
-		URLsGot[i].ShortURL = h.Conf.BaseAddress + "/" + urlShort
-		URLsGot[i].OriginalURL = ""
+		urlsGot[i].ShortURL = h.Conf.BaseAddress + "/" + urlShort
+		urlsGot[i].OriginalURL = ""
 	}
 
 	//url saving
 	userIDFromContext := req.Context().Value(middlewares.UserIDContextKey)
 	userID, ok := (userIDFromContext).(int)
 	if (userIDFromContext != nil) && (ok) {
-		err = h.URLStorage.SaveBatchWithUserID(req.Context(), userID, URLsToSave)
+		err = h.URLStorage.SaveBatchWithUserID(req.Context(), userID, urlsToSave)
 	} else {
-		err = h.URLStorage.SaveBatch(req.Context(), URLsToSave)
+		err = h.URLStorage.SaveBatch(req.Context(), urlsToSave)
 	}
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
@@ -89,7 +75,7 @@ func (h *ShortenBatchHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 	}
 
 	//response making
-	jsonResponse, err := json.Marshal(URLsGot)
+	jsonResponse, err := json.Marshal(urlsGot)
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		log.Default().Println("Error during marshalling JSON responce")
