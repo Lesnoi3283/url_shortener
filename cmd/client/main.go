@@ -1,3 +1,4 @@
+// Package client allows you to short URL using url_shortener`s server.
 package client
 
 import (

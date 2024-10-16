@@ -22,7 +22,7 @@ type URLData struct {
 	OriginalURL string `json:"original_url"`
 }
 
-// UserURLsHandler.ServeHTTP returns a JSON array with all users`s urls.
+// ServeHTTP returns a JSON array with all users`s urls.
 func (h *UserURLsHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 
 	cookie, err := req.Cookie(middlewares.JwtCookieName)

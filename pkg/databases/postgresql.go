@@ -14,7 +14,7 @@ type Postgresql struct {
 	store *sql.DB
 }
 
-// build a new Postgresql.
+// NewPostgresql builds a new Postgresql.
 func NewPostgresql(connStr string) (*Postgresql, error) {
 	db, err := sql.Open("pgx", connStr)
 	if err != nil {

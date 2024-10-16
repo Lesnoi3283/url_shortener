@@ -1,3 +1,5 @@
+// Package config is a configuration package.
+// It contains a Config struct and functions to read configuration params from env variables and command line args.
 package config
 
 import (

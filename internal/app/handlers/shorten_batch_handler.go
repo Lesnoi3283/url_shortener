@@ -19,7 +19,7 @@ type ShortenBatchHandler struct {
 	Log        zap.SugaredLogger
 }
 
-// ShortenBatchHandler.ServeHTTP shorts all given URLS (in JSON) and saves them in a storage.
+// ServeHTTP shorts all given URLS (in JSON) and saves them in a storage.
 // Returns a JSON array with short versions of given URLs.
 func (h *ShortenBatchHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	//read request params

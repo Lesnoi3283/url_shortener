@@ -1,3 +1,4 @@
+// Package middlewares contains middlewares (functions which will run before handlers).
 package middlewares
 
 import (
