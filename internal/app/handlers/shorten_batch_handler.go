@@ -46,30 +46,15 @@ func (h *ShortenBatchHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	//type URLShorten struct {
-	//	CorrelationID string `json:"correlation_id"`
-	//	ShortURL      string `json:"short_url"`
-	//}
-
 	URLsToSave := make([]entities.URL, 0)
-	//URLsToReturn := make([]URLShorten, 0)
 
 	for i, url := range URLsGot {
-		//url shorting
-		//hasher := sha256.New()
-		//hasher.Write([]byte(url.OriginalURL))
-		//urlShort := fmt.Sprintf("%x", hasher.Sum(nil))
-		//urlShort = urlShort[:16]
 		urlShort := string(ShortenURL([]byte(url.OriginalURL)))
 
 		URLsToSave = append(URLsToSave, entities.URL{
 			Short: urlShort,
 			Long:  url.OriginalURL,
 		})
-		//URLsToReturn = append(URLsToReturn, URLShorten{
-		//	CorrelationID: URLsGot[i].CorrelationID,
-		//	ShortURL:      h.Conf.BaseAddress + "/" + urlShort,
-		//}) //optimizing:
 		URLsGot[i].ShortURL = h.Conf.BaseAddress + "/" + urlShort
 		URLsGot[i].OriginalURL = ""
 	}
