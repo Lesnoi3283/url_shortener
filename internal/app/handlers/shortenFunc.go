@@ -4,9 +4,9 @@ import "crypto/sha256"
 
 const defaultShortURLLen = 16
 
-// ShortenURL generates a short version of given slice of bytes.
+// shortenURL generates a short version of given slice of bytes.
 // It takes SHA256 sum of given bytes, translates sum into letters (from 'a' to 'z'), cuts it and returns.
-func ShortenURL(url []byte) []byte {
+func shortenURL(url []byte) []byte {
 	hasher := sha256.New()
 	hasher.Write(url)
 	//urlShort := fmt.Sprintf("%x", hasher.Sum(nil)) //optimizing:

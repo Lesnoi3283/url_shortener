@@ -37,35 +37,37 @@ func (h *ShortenBatchHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 		ShortURL      string `json:"short_url"`
 	}
 
-	URLsGot := make([]URLGot, 0)
+	urlsGot := make([]URLGot, 0)
 
-	err = json.Unmarshal(bodyBytes, &URLsGot)
+	err = json.Unmarshal(bodyBytes, &urlsGot)
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		h.Log.Error("Error during unmarshalling JSON")
 		return
 	}
 
-	URLsToSave := make([]entities.URL, 0)
+	urlsToSave := make([]entities.URL, 0)
 
-	for i, url := range URLsGot {
-		urlShort := string(ShortenURL([]byte(url.OriginalURL)))
+	for i, url := range urlsGot {
+		//url shorting
+		urlShort := string(shortenURL([]byte(url.OriginalURL)))
 
-		URLsToSave = append(URLsToSave, entities.URL{
+		urlsToSave = append(urlsToSave, entities.URL{
 			Short: urlShort,
 			Long:  url.OriginalURL,
 		})
-		URLsGot[i].ShortURL = h.Conf.BaseAddress + "/" + urlShort
-		URLsGot[i].OriginalURL = ""
+
+		urlsGot[i].ShortURL = h.Conf.BaseAddress + "/" + urlShort
+		urlsGot[i].OriginalURL = ""
 	}
 
 	//url saving
 	userIDFromContext := req.Context().Value(middlewares.UserIDContextKey)
 	userID, ok := (userIDFromContext).(int)
 	if (userIDFromContext != nil) && (ok) {
-		err = h.URLStorage.SaveBatchWithUserID(req.Context(), userID, URLsToSave)
+		err = h.URLStorage.SaveBatchWithUserID(req.Context(), userID, urlsToSave)
 	} else {
-		err = h.URLStorage.SaveBatch(req.Context(), URLsToSave)
+		err = h.URLStorage.SaveBatch(req.Context(), urlsToSave)
 	}
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
@@ -74,7 +76,7 @@ func (h *ShortenBatchHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 	}
 
 	//response making
-	jsonResponse, err := json.Marshal(URLsGot)
+	jsonResponse, err := json.Marshal(urlsGot)
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		log.Default().Println("Error during marshalling JSON responce")

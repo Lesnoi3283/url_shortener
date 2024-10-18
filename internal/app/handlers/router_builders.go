@@ -44,8 +44,6 @@ func NewRouter(conf config.Config, store URLStorageInterface, logger zap.Sugared
 	}
 
 	r.Use(middlewares.LoggerMW(logger))
-	//requestManager := middlewares.NewRequestManager(100, time.Minute)
-	//r.Use(middlewares.RequestLimiterMW(logger, requestManager)) //лимитер был реализован ради эксперимента
 	r.Use(middlewares.CompressionMW(logger))
 	r.Use(middlewares.AuthMW(store, logger))
 

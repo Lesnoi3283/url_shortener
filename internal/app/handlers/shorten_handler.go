@@ -52,7 +52,7 @@ func (h *ShortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	//hasher.Write(bodyBytes)
 	//urlShort := fmt.Sprintf("%x", hasher.Sum(nil))
 	//urlShort = urlShort[:16]
-	urlShort := string(ShortenURL(bodyBytes))
+	urlShort := string(shortenURL(bodyBytes))
 
 	//url saving
 	userIDFromContext := req.Context().Value(middlewares.UserIDContextKey)
