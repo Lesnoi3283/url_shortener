@@ -34,7 +34,7 @@ type ShortURLRedirectHandler struct {
 	URLStorage URLStorageInterface
 }
 
-// ShortURLRedirectHandler.ServeHTTP reads short URL from given URLParam and redirects user to an original URL.
+// ServeHTTP reads short URL from given URLParam and redirects user to an original URL.
 func (h *ShortURLRedirectHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	//reading data from request
 	shorted := chi.URLParam(req, "url")
@@ -62,7 +62,7 @@ type URLShortenerHandler struct {
 	URLStorage URLStorageInterface
 }
 
-// URLShortenerHandler.ServeHTTP shorts a given URL (plain text), saves it in a storage and returns a short version.
+// ServeHTTP shorts a given URL (plain text), saves it in a storage and returns a short version.
 func (h *URLShortenerHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	//this var is necessary. Because it helps to change status code to 409 if url already exists
 	successStatus := http.StatusCreated
