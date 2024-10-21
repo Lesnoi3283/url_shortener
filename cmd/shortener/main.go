@@ -6,7 +6,9 @@ import (
 	"github.com/Lesnoi3283/url_shortener/internal/app/handlers"
 	"github.com/Lesnoi3283/url_shortener/pkg/databases"
 	"go.uber.org/zap"
+	"golang.org/x/crypto/acme/autocert"
 	"log"
+	"net"
 	"net/http"
 )
 
@@ -64,6 +66,21 @@ func main() {
 	sugar := zapLogger.Sugar()
 
 	//server building
+	var listener net.Listener
+
+	//HTTPS configuration
+	if conf.EnableHTTPS {
+		sugar.Info("Starting HTTPS server")
+		listener = autocert.NewListener("urlshortener.ru")
+	} else {
+		sugar.Info("Starting HTTP server")
+		listener, err = net.Listen("tcp", conf.ServerAddress)
+		if err != nil {
+			sugar.Fatalf("cant create a default listener, err: %v", err)
+		}
+	}
+
+	//server starting
 	r := handlers.NewRouter(conf, URLStore, *sugar)
-	log.Fatal(http.ListenAndServe(conf.ServerAddress, r))
+	sugar.Fatal(http.Serve(listener, r))
 }

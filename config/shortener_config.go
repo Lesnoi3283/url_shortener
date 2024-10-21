@@ -14,6 +14,7 @@ const (
 	DefaultLogLevel           = "info"
 	DefaultFileStoragePath    = "/tmp/short-url-db.json"
 	DefaultDBConnectionString = ""
+	DefaultEnableHTTPSFlag    = false
 )
 
 // Config is a struct with configuration params.
@@ -23,6 +24,7 @@ type Config struct {
 	LogLevel        string
 	FileStoragePath string
 	DBConnString    string
+	EnableHTTPS     bool
 }
 
 // Configure reads configuration params from command line args, environmental variables and DefaultConstParams.
@@ -33,6 +35,7 @@ func (c *Config) Configure() {
 	flag.StringVar(&(c.LogLevel), "l", DefaultLogLevel, "Log level")
 	flag.StringVar(&(c.FileStoragePath), "f", DefaultFileStoragePath, "File storage path")
 	flag.StringVar(&(c.DBConnString), "d", DefaultDBConnectionString, "DB connection string")
+	flag.BoolVar(&(c.EnableHTTPS), "s", DefaultEnableHTTPSFlag, "This flag enables HTTPS support")
 	flag.Parse()
 
 	envServerAddress, wasFoundServerAddress := os.LookupEnv("SERVER_ADDRESS")
@@ -40,6 +43,7 @@ func (c *Config) Configure() {
 	envLogLevel, wasFoundLogLevel := os.LookupEnv("LOG_LEVEL")
 	envFileStoragePath, wasFoundFileStoragePath := os.LookupEnv("FILE_STORAGE_PATH")
 	envDBConnString, wasFoundDBConnString := os.LookupEnv("DATABASE_DSN")
+	_, wasFoundEnableHTTPSFlag := os.LookupEnv("ENABLE_HTTPS")
 
 	if c.ServerAddress == DefaultServerAddress && wasFoundServerAddress {
 		c.ServerAddress = envServerAddress
@@ -55,6 +59,10 @@ func (c *Config) Configure() {
 	}
 	if wasFoundDBConnString {
 		c.DBConnString = envDBConnString
+	}
+	if wasFoundEnableHTTPSFlag {
+		c.EnableHTTPS = true
+		//It can`t be simplified as "c.EnableHTTPS = wasFound...", because it will change a flag value
 	}
 	//`else` - flag value (it has been already set)
 }
