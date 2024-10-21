@@ -8,7 +8,6 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/crypto/acme/autocert"
 	"log"
-	"net"
 	"net/http"
 )
 
@@ -29,6 +28,7 @@ func naOrValue(v string) string {
 
 func main() {
 
+	//print version data
 	fmt.Printf("Build version: %s\n", naOrValue(buildVersion))
 	fmt.Printf("Build date: %s\n", naOrValue(buildDate))
 	fmt.Printf("Build commit: %s\n", naOrValue(buildCommit))
@@ -66,21 +66,34 @@ func main() {
 	sugar := zapLogger.Sugar()
 
 	//server building
-	var listener net.Listener
+	r := handlers.NewRouter(conf, URLStore, *sugar)
+	var server *http.Server
 
-	//HTTPS configuration
 	if conf.EnableHTTPS {
+		//HTTPS server starting
 		sugar.Info("Starting HTTPS server")
-		listener = autocert.NewListener("urlshortener.ru")
-	} else {
-		sugar.Info("Starting HTTP server")
-		listener, err = net.Listen("tcp", conf.ServerAddress)
-		if err != nil {
-			sugar.Fatalf("cant create a default listener, err: %v", err)
+
+		manager := autocert.Manager{
+			Cache:      autocert.DirCache("cache-dir"),
+			Prompt:     autocert.AcceptTOS,
+			HostPolicy: autocert.HostWhitelist("urlshortener.ru"),
 		}
+		server = &http.Server{
+			Addr:      conf.ServerAddress,
+			Handler:   r,
+			TLSConfig: manager.TLSConfig(),
+		}
+
+		sugar.Fatal(server.ListenAndServeTLS("", ""))
+
+	} else {
+		//HTTP server starting
+		sugar.Info("Starting HTTP server")
+		server = &http.Server{
+			Addr:    conf.ServerAddress,
+			Handler: r,
+		}
+		sugar.Fatal(server.ListenAndServe())
 	}
 
-	//server starting
-	r := handlers.NewRouter(conf, URLStore, *sugar)
-	sugar.Fatal(http.Serve(listener, r))
 }
