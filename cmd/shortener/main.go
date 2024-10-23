@@ -35,7 +35,10 @@ func main() {
 
 	//conf
 	conf := config.Config{}
-	conf.Configure()
+	err := conf.Configure()
+	if err != nil {
+		log.Fatalf("Error loading config: %v", err)
+	}
 
 	//storages set
 	var URLStore handlers.URLStorageInterface
