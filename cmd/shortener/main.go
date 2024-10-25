@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/Lesnoi3283/url_shortener/config"
 	"github.com/Lesnoi3283/url_shortener/internal/app/handlers"
@@ -9,6 +10,10 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 )
 
 var (
@@ -23,6 +28,28 @@ func naOrValue(v string) string {
 		return "N/A"
 	} else {
 		return v
+	}
+}
+
+// gracefulShutdown listens for os signals syscall.SIGTERM, syscall.SIGINT and syscall.SIGQUIT.
+// Calls server.Shutdown if signal received.
+// This func have to be called in different goroutine, because it has an endless loop.
+func gracefulShutdown(server *http.Server, log zap.SugaredLogger, wg *sync.WaitGroup) {
+	defer wg.Done()
+	shutDownCh := make(chan os.Signal, 1)
+	signal.Notify(shutDownCh, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+
+loop:
+	for {
+		select {
+		case <-shutDownCh:
+			log.Info("Graceful shutting down...")
+			err := server.Shutdown(context.Background())
+			if err != nil {
+				log.Error("failed to shutdown gracefully", zap.Error(err))
+			}
+			break loop
+		}
 	}
 }
 
@@ -71,6 +98,7 @@ func main() {
 	//server building
 	r := handlers.NewRouter(conf, URLStore, *sugar)
 	var server *http.Server
+	wg := &sync.WaitGroup{}
 
 	if conf.EnableHTTPS {
 		//HTTPS server starting
@@ -87,7 +115,14 @@ func main() {
 			TLSConfig: manager.TLSConfig(),
 		}
 
-		sugar.Fatal(server.ListenAndServeTLS("", ""))
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			err := server.ListenAndServeTLS("", "")
+			if err != nil {
+				sugar.Errorf("server error: %v", err)
+			}
+		}()
 
 	} else {
 		//HTTP server starting
@@ -96,7 +131,21 @@ func main() {
 			Addr:    conf.ServerAddress,
 			Handler: r,
 		}
-		sugar.Fatal(server.ListenAndServe())
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			err := server.ListenAndServe()
+			if err != nil {
+				sugar.Errorf("server error: %v", err)
+			}
+		}()
 	}
 
+	//graceful shutdown
+	wg.Add(1)
+	fmt.Printf("1")
+	go gracefulShutdown(server, *sugar, wg)
+
+	wg.Wait()
 }
