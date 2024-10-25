@@ -45,6 +45,8 @@ func gracefulShutdown(server *http.Server, log zap.SugaredLogger, wg *sync.WaitG
 		if err != nil {
 			log.Error("failed to shutdown gracefully", zap.Error(err))
 		}
+		close(shutDownCh)
+		return
 	}
 }
 
@@ -139,8 +141,6 @@ func main() {
 
 	//graceful shutdown
 	wg.Add(1)
-	fmt.Printf("1")
 	go gracefulShutdown(server, *sugar, wg)
-
 	wg.Wait()
 }
