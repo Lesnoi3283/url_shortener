@@ -126,6 +126,7 @@ func (c *Config) Configure() error {
 		if c.DBConnString == DefaultDBConnectionString {
 			c.DBConnString = confData.DatabaseDsn
 		}
+		//lint:ignore SA4020 DefaultEnableHTTPSFlag value can be different, programmers can change it.
 		if c.EnableHTTPS == DefaultEnableHTTPSFlag {
 			c.EnableHTTPS = confData.EnableHTTPS
 		}
