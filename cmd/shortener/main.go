@@ -39,16 +39,11 @@ func gracefulShutdown(server *http.Server, log zap.SugaredLogger, wg *sync.WaitG
 	shutDownCh := make(chan os.Signal, 1)
 	signal.Notify(shutDownCh, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
-loop:
-	for {
-		select {
-		case <-shutDownCh:
-			log.Info("Graceful shutting down...")
-			err := server.Shutdown(context.Background())
-			if err != nil {
-				log.Error("failed to shutdown gracefully", zap.Error(err))
-			}
-			break loop
+	for v := range shutDownCh {
+		log.Infof("Received an os signal '%s', graceful shutting down...", v.String())
+		err := server.Shutdown(context.Background())
+		if err != nil {
+			log.Error("failed to shutdown gracefully", zap.Error(err))
 		}
 	}
 }

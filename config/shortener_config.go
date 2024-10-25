@@ -23,10 +23,10 @@ const (
 
 type confFileData struct {
 	ServerAddress   string `json:"server_address"`
-	BaseUrl         string `json:"base_url"`
+	BaseURL         string `json:"base_url"`
 	FileStoragePath string `json:"file_storage_path"`
 	DatabaseDsn     string `json:"database_dsn"`
-	EnableHttps     bool   `json:"enable_https"`
+	EnableHTTPS     bool   `json:"enable_https"`
 	LogLevel        string `json:"log_level"`
 }
 
@@ -115,7 +115,7 @@ func (c *Config) Configure() error {
 			c.ServerAddress = confData.ServerAddress
 		}
 		if c.BaseAddress == DefaultBaseAddress {
-			c.BaseAddress = confData.BaseUrl
+			c.BaseAddress = confData.BaseURL
 		}
 		if c.LogLevel == DefaultLogLevel {
 			c.LogLevel = confData.LogLevel
@@ -127,7 +127,7 @@ func (c *Config) Configure() error {
 			c.DBConnString = confData.DatabaseDsn
 		}
 		if c.EnableHTTPS == DefaultEnableHTTPSFlag {
-			c.EnableHTTPS = confData.EnableHttps
+			c.EnableHTTPS = confData.EnableHTTPS
 		}
 	}
 	return nil
