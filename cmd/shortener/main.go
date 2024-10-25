@@ -46,7 +46,6 @@ func gracefulShutdown(server *http.Server, log zap.SugaredLogger, wg *sync.WaitG
 			log.Error("failed to shutdown gracefully", zap.Error(err))
 		}
 		close(shutDownCh)
-		return
 	}
 }
 
