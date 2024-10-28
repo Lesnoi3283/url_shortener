@@ -59,7 +59,10 @@ func TestShortenBatchHandler_ServeHTTP(t *testing.T) {
 	zapTestLogger := zaptest.NewLogger(t)
 	defer zapTestLogger.Sync()
 	sugar := zapTestLogger.Sugar()
-	ts := httptest.NewServer(NewRouter(conf, URLStore, *sugar))
+
+	r, err := NewRouter(conf, URLStore, *sugar)
+	require.NoError(t, err, "error while creating a router in test")
+	ts := httptest.NewServer(r)
 
 	// Запуск тестов
 	for _, tt := range tests {

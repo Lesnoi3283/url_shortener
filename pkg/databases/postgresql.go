@@ -249,3 +249,31 @@ func (p *Postgresql) CreateUser(ctx context.Context) (int, error) {
 
 	return userID, nil
 }
+
+// GetUserCount returns the total number of users in the database.
+func (p *Postgresql) GetUserCount(ctx context.Context) (int, error) {
+	query := "SELECT COUNT(*) FROM users;"
+
+	var userCount int
+
+	err := p.store.QueryRowContext(ctx, query).Scan(&userCount)
+	if err != nil {
+		return 0, fmt.Errorf("postgres get user count: %w", err)
+	}
+
+	return userCount, nil
+}
+
+// GetShortURLCount returns the total number of short URLs in the database.
+func (p *Postgresql) GetShortURLCount(ctx context.Context) (int, error) {
+	query := "SELECT COUNT(*) FROM user_urls_table;"
+
+	var urlCount int
+
+	err := p.store.QueryRowContext(ctx, query).Scan(&urlCount)
+	if err != nil {
+		return 0, fmt.Errorf("postgres get short URL count: %w", err)
+	}
+
+	return urlCount, nil
+}

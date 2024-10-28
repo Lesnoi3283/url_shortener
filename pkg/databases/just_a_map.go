@@ -113,3 +113,16 @@ func (j *JustAMap) Get(ctx context.Context, key string) (toRet string, err error
 	}
 	return toRet, err
 }
+
+// GetUserCount returns the total number of users in the database.
+// JustAMap DOESN`T SUPPORT IT NOW!
+func (j *JustAMap) GetUserCount(ctx context.Context) (int, error) {
+	return 0, ErrThisFuncIsNotSupported()
+}
+
+// GetShortURLCount returns the total number of short URLs in the map storage.
+func (j *JustAMap) GetShortURLCount(ctx context.Context) (int, error) {
+	j.Mutex.Lock()
+	defer j.Mutex.Unlock()
+	return len(j.Store), nil
+}

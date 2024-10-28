@@ -19,6 +19,7 @@ const (
 	DefaultFileStoragePath    = "/tmp/short-url-db.json"
 	DefaultDBConnectionString = ""
 	DefaultEnableHTTPSFlag    = false
+	DefaultTrustedSubnet      = "127.0.0.1/24"
 )
 
 type confFileData struct {
@@ -28,6 +29,7 @@ type confFileData struct {
 	DatabaseDsn     string `json:"database_dsn"`
 	EnableHTTPS     bool   `json:"enable_https"`
 	LogLevel        string `json:"log_level"`
+	TrustedSubnet   string `json:"trusted_subnet"`
 }
 
 // Config is a struct with configuration params.
@@ -39,6 +41,7 @@ type Config struct {
 	DBConnString    string
 	EnableHTTPS     bool
 	ConfigFileName  string
+	TrustedSubnet   string
 }
 
 // Configure reads configuration params from command line args, environmental variables and DefaultConstParams.
@@ -52,6 +55,7 @@ func (c *Config) Configure() error {
 	flag.StringVar(&(c.DBConnString), "d", DefaultDBConnectionString, "DB connection string")
 	flag.BoolVar(&(c.EnableHTTPS), "s", DefaultEnableHTTPSFlag, "This flag enables HTTPS support")
 	flag.StringVar(&(c.ConfigFileName), "c", "", "Config file name")
+	flag.StringVar(&(c.TrustedSubnet), "t", DefaultTrustedSubnet, "Trusted subnet")
 	flag.Parse()
 
 	//get env values
@@ -62,6 +66,7 @@ func (c *Config) Configure() error {
 	envDBConnString, wasFoundDBConnString := os.LookupEnv("DATABASE_DSN")
 	envEnableHTTPS, wasFoundEnableHTTPSFlag := os.LookupEnv("ENABLE_HTTPS")
 	envConfFile, wasFoundConfFile := os.LookupEnv("CONFIG")
+	envTrustedSubnet, wasFoundTrustedSubnet := os.LookupEnv("trusted_subnet")
 
 	//set values
 	if c.ServerAddress == DefaultServerAddress && wasFoundServerAddress {
@@ -85,6 +90,9 @@ func (c *Config) Configure() error {
 			return fmt.Errorf("error parsing ENABLE_HTTPS env var: %w", err)
 		}
 		c.EnableHTTPS = parsedEnableHTTPS
+	}
+	if wasFoundTrustedSubnet {
+		c.TrustedSubnet = envTrustedSubnet
 	}
 	//`else` - flag value (it has been already set)
 
@@ -111,23 +119,26 @@ func (c *Config) Configure() error {
 		}
 
 		//set values
-		if c.ServerAddress == DefaultServerAddress {
+		if c.ServerAddress == DefaultServerAddress && confData.ServerAddress != "" {
 			c.ServerAddress = confData.ServerAddress
 		}
-		if c.BaseAddress == DefaultBaseAddress {
+		if c.BaseAddress == DefaultBaseAddress && confData.BaseURL != "" {
 			c.BaseAddress = confData.BaseURL
 		}
-		if c.LogLevel == DefaultLogLevel {
+		if c.LogLevel == DefaultLogLevel && confData.LogLevel != "" {
 			c.LogLevel = confData.LogLevel
 		}
-		if c.FileStoragePath == DefaultFileStoragePath {
+		if c.FileStoragePath == DefaultFileStoragePath && confData.FileStoragePath != "" {
 			c.FileStoragePath = confData.FileStoragePath
 		}
-		if c.DBConnString == DefaultDBConnectionString {
+		if c.DBConnString == DefaultDBConnectionString && confData.DatabaseDsn != "" {
 			c.DBConnString = confData.DatabaseDsn
 		}
-		if !c.EnableHTTPS {
+		if !c.EnableHTTPS && confData.EnableHTTPS {
 			c.EnableHTTPS = confData.EnableHTTPS
+		}
+		if c.TrustedSubnet == DefaultTrustedSubnet && confData.TrustedSubnet != "" {
+			c.TrustedSubnet = confData.TrustedSubnet
 		}
 	}
 	return nil

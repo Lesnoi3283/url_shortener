@@ -27,6 +27,8 @@ type URLStorageInterface interface {
 	GetUserUrls(ctx context.Context, userID int) ([]entities.URL, error)
 	Ping() error
 	CreateUser(ctx context.Context) (int, error)
+	GetUserCount(ctx context.Context) (int, error)
+	GetShortURLCount(ctx context.Context) (int, error)
 }
 
 // ShortURLRedirectHandler is a handler struct. Use it`s ServeHTTP func.
