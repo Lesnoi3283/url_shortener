@@ -3,8 +3,12 @@
 package config
 
 import (
+	"encoding/json"
 	"flag"
+	"fmt"
+	"io"
 	"os"
+	"strconv"
 )
 
 // Default configurations params.
@@ -14,7 +18,17 @@ const (
 	DefaultLogLevel           = "info"
 	DefaultFileStoragePath    = "/tmp/short-url-db.json"
 	DefaultDBConnectionString = ""
+	DefaultEnableHTTPSFlag    = false
 )
+
+type confFileData struct {
+	ServerAddress   string `json:"server_address"`
+	BaseURL         string `json:"base_url"`
+	FileStoragePath string `json:"file_storage_path"`
+	DatabaseDsn     string `json:"database_dsn"`
+	EnableHTTPS     bool   `json:"enable_https"`
+	LogLevel        string `json:"log_level"`
+}
 
 // Config is a struct with configuration params.
 type Config struct {
@@ -23,24 +37,33 @@ type Config struct {
 	LogLevel        string
 	FileStoragePath string
 	DBConnString    string
+	EnableHTTPS     bool
+	ConfigFileName  string
 }
 
 // Configure reads configuration params from command line args, environmental variables and DefaultConstParams.
 // And writes them into a Config struct.
-func (c *Config) Configure() {
+func (c *Config) Configure() error {
+	//get flag values
 	flag.StringVar(&(c.ServerAddress), "a", DefaultServerAddress, "Address where server will work. Example: \"localhost:8080\".")
 	flag.StringVar(&(c.BaseAddress), "b", DefaultBaseAddress, "Base address before a shorted url")
 	flag.StringVar(&(c.LogLevel), "l", DefaultLogLevel, "Log level")
 	flag.StringVar(&(c.FileStoragePath), "f", DefaultFileStoragePath, "File storage path")
 	flag.StringVar(&(c.DBConnString), "d", DefaultDBConnectionString, "DB connection string")
+	flag.BoolVar(&(c.EnableHTTPS), "s", DefaultEnableHTTPSFlag, "This flag enables HTTPS support")
+	flag.StringVar(&(c.ConfigFileName), "c", "", "Config file name")
 	flag.Parse()
 
+	//get env values
 	envServerAddress, wasFoundServerAddress := os.LookupEnv("SERVER_ADDRESS")
 	envBaseAddress, wasFoundBaseAddress := os.LookupEnv("BASE_URL")
 	envLogLevel, wasFoundLogLevel := os.LookupEnv("LOG_LEVEL")
 	envFileStoragePath, wasFoundFileStoragePath := os.LookupEnv("FILE_STORAGE_PATH")
 	envDBConnString, wasFoundDBConnString := os.LookupEnv("DATABASE_DSN")
+	envEnableHTTPS, wasFoundEnableHTTPSFlag := os.LookupEnv("ENABLE_HTTPS")
+	envConfFile, wasFoundConfFile := os.LookupEnv("CONFIG")
 
+	//set values
 	if c.ServerAddress == DefaultServerAddress && wasFoundServerAddress {
 		c.ServerAddress = envServerAddress
 	}
@@ -56,5 +79,56 @@ func (c *Config) Configure() {
 	if wasFoundDBConnString {
 		c.DBConnString = envDBConnString
 	}
+	if wasFoundEnableHTTPSFlag {
+		parsedEnableHTTPS, err := strconv.ParseBool(envEnableHTTPS)
+		if err != nil {
+			return fmt.Errorf("error parsing ENABLE_HTTPS env var: %w", err)
+		}
+		c.EnableHTTPS = parsedEnableHTTPS
+	}
 	//`else` - flag value (it has been already set)
+
+	//get config file values and set them if they were not provided earlier
+	if wasFoundConfFile {
+		c.ConfigFileName = envConfFile
+		//open file
+		file, err := os.Open(c.ConfigFileName)
+		if err != nil {
+			return fmt.Errorf("could not open config file: %w", err)
+		}
+
+		//read
+		data, err := io.ReadAll(file)
+		if err != nil {
+			return fmt.Errorf("could not read config file: %w", err)
+		}
+
+		//parse
+		confData := &confFileData{}
+		err = json.Unmarshal(data, confData)
+		if err != nil {
+			return fmt.Errorf("could not parse config file: %w", err)
+		}
+
+		//set values
+		if c.ServerAddress == DefaultServerAddress {
+			c.ServerAddress = confData.ServerAddress
+		}
+		if c.BaseAddress == DefaultBaseAddress {
+			c.BaseAddress = confData.BaseURL
+		}
+		if c.LogLevel == DefaultLogLevel {
+			c.LogLevel = confData.LogLevel
+		}
+		if c.FileStoragePath == DefaultFileStoragePath {
+			c.FileStoragePath = confData.FileStoragePath
+		}
+		if c.DBConnString == DefaultDBConnectionString {
+			c.DBConnString = confData.DatabaseDsn
+		}
+		if !c.EnableHTTPS {
+			c.EnableHTTPS = confData.EnableHTTPS
+		}
+	}
+	return nil
 }
