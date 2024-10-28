@@ -80,6 +80,36 @@ func (mr *MockURLStorageInterfaceMockRecorder) Get(ctx, short interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockURLStorageInterface)(nil).Get), ctx, short)
 }
 
+// GetShortURLCount mocks base method.
+func (m *MockURLStorageInterface) GetShortURLCount(ctx context.Context) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetShortURLCount", ctx)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetShortURLCount indicates an expected call of GetShortURLCount.
+func (mr *MockURLStorageInterfaceMockRecorder) GetShortURLCount(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetShortURLCount", reflect.TypeOf((*MockURLStorageInterface)(nil).GetShortURLCount), ctx)
+}
+
+// GetUserCount mocks base method.
+func (m *MockURLStorageInterface) GetUserCount(ctx context.Context) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserCount", ctx)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserCount indicates an expected call of GetUserCount.
+func (mr *MockURLStorageInterfaceMockRecorder) GetUserCount(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserCount", reflect.TypeOf((*MockURLStorageInterface)(nil).GetUserCount), ctx)
+}
+
 // GetUserUrls mocks base method.
 func (m *MockURLStorageInterface) GetUserUrls(ctx context.Context, userID int) ([]entities.URL, error) {
 	m.ctrl.T.Helper()

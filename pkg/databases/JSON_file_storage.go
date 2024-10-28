@@ -343,3 +343,37 @@ func (j *JSONFileStorage) CreateUser(ctx context.Context) (int, error) {
 	userID := int(binary.BigEndian.Uint64(hashSum[:8]))
 	return userID, nil
 }
+
+// GetUserCount returns the total number of users in the database.
+// JSONFileStorage DOESN`T SUPPORT IT NOW!
+func (j *JSONFileStorage) GetUserCount(ctx context.Context) (int, error) {
+	return 0, ErrThisFuncIsNotSupported()
+}
+
+// GetShortURLCount returns the total number of short URLs in the JSON file storage.
+// number of short urls is a number of lines.
+func (j *JSONFileStorage) GetShortURLCount(ctx context.Context) (int, error) {
+	j.mutex.Lock()
+	defer j.mutex.Unlock()
+
+	//open fil
+	file, err := os.Open(j.Path)
+	if err != nil {
+		return 0, err
+	}
+	defer file.Close()
+
+	//count lines
+	count := 0
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		count++
+	}
+
+	//err check and return
+	if err := scanner.Err(); err != nil {
+		return 0, fmt.Errorf("error reading file: %w", err)
+	}
+
+	return count, nil
+}

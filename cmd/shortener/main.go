@@ -92,7 +92,10 @@ func main() {
 	sugar := zapLogger.Sugar()
 
 	//server building
-	r := handlers.NewRouter(conf, URLStore, *sugar)
+	r, err := handlers.NewRouter(conf, URLStore, *sugar)
+	if err != nil {
+		sugar.Fatalf("Error creating new router: %v", err)
+	}
 	var server *http.Server
 	wg := &sync.WaitGroup{}
 
