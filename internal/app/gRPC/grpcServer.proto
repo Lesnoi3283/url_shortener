@@ -1,0 +1,34 @@
+syntax = "proto3";
+package grpc_server;
+
+import "google/protobuf/empty.proto";
+
+message DeleteURLsRequest{
+  repeated string URLs = 1;
+}
+
+message GetOriginalURLRequest{
+  string short_url = 1;
+}
+
+message ShortenRequest{
+  string original_url = 1;
+}
+
+message ShortenBatchRequest{
+  message URL {
+    int32 correlation_id = 1;
+    string original_url = 2;
+  }
+  repeated URL urls = 1;
+}
+
+//service FooService {
+//  rpc Get(GetRequest) returns (GetResponse);
+//  rpc List(ListRequest) returns (stream ListResponse);
+//  rpc Exchange(stream ExchangeRequest) returns (stream ExchangeResponse);
+//}
+
+service URLShortenerService{
+  rpc deleteURLs(DeleteURLsRequest) returns (google.protobuf.Empty);
+}
