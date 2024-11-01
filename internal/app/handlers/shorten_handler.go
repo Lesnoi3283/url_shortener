@@ -3,20 +3,20 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"github.com/Lesnoi3283/url_shortener/internal/app/logic"
+	"github.com/Lesnoi3283/url_shortener/pkg/databases"
 	"io"
 	"log"
 	"net/http"
 
 	"github.com/Lesnoi3283/url_shortener/config"
-	"github.com/Lesnoi3283/url_shortener/internal/app/entities"
 	"github.com/Lesnoi3283/url_shortener/internal/app/middlewares"
-	"github.com/Lesnoi3283/url_shortener/pkg/databases"
 	"go.uber.org/zap"
 )
 
 // ShortenHandler is a handler struct. Use it`s ServeHTTP func.
 type ShortenHandler struct {
-	URLStorage URLStorageInterface
+	URLStorage logic.URLStorageInterface
 	Conf       config.Config
 	Log        zap.SugaredLogger
 }
@@ -47,27 +47,21 @@ func (h *ShortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	//url shorting
-	//hasher := sha256.New()
-	//hasher.Write(bodyBytes)
-	//urlShort := fmt.Sprintf("%x", hasher.Sum(nil))
-	//urlShort = urlShort[:16]
-	urlShort := string(shortenURL(bodyBytes))
-
-	//url saving
+	//get userID and short the URL
 	userIDFromContext := req.Context().Value(middlewares.UserIDContextKey)
 	userID, ok := (userIDFromContext).(int)
-	if (userIDFromContext != nil) && (ok) {
-		err = h.URLStorage.SaveWithUserID(req.Context(), userID, entities.URL{
-			Short: urlShort,
-			Long:  realURL.Val,
-		})
+	var urlShort string
+	if ok {
+		urlShort, err = logic.Shorten(req.Context(), []byte(realURL.Val), h.Conf.BaseAddress, h.URLStorage, userID)
 	} else {
-		err = h.URLStorage.Save(req.Context(), entities.URL{
-			Short: urlShort,
-			Long:  realURL.Val,
-		})
+		urlShort, err = logic.Shorten(req.Context(), []byte(realURL.Val), h.Conf.BaseAddress, h.URLStorage, -1)
 	}
+	if err != nil {
+		res.WriteHeader(http.StatusInternalServerError)
+		h.Log.Errorf("Error while shortening URL '%s': %v", realURL.Val, err)
+		return
+	}
+
 	var alrExErr *databases.AlreadyExistsError
 	if errors.As(err, &alrExErr) {
 		urlShort = alrExErr.ShortURL
@@ -82,7 +76,7 @@ func (h *ShortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	responce := struct {
 		Result string `json:"result"`
 	}{
-		Result: h.Conf.BaseAddress + "/" + urlShort,
+		Result: urlShort,
 	}
 
 	jsonResponce, err := json.Marshal(responce)

@@ -2,19 +2,20 @@ package handlers
 
 import (
 	"encoding/json"
+	"github.com/Lesnoi3283/url_shortener/internal/app/logic"
+	"github.com/Lesnoi3283/url_shortener/internal/app/middlewares"
 	"io"
 	"log"
 	"net/http"
 
 	"github.com/Lesnoi3283/url_shortener/config"
 	"github.com/Lesnoi3283/url_shortener/internal/app/entities"
-	"github.com/Lesnoi3283/url_shortener/internal/app/middlewares"
 	"go.uber.org/zap"
 )
 
 // ShortenBatchHandler is a handler struct. Use it`s ServeHTTP func.
 type ShortenBatchHandler struct {
-	URLStorage URLStorageInterface
+	URLStorage logic.URLStorageInterface
 	Conf       config.Config
 	Log        zap.SugaredLogger
 }
@@ -31,55 +32,34 @@ func (h *ShortenBatchHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	type URLGot struct {
-		CorrelationID string `json:"correlation_id"`
-		OriginalURL   string `json:"original_url,omitempty"`
-		ShortURL      string `json:"short_url"`
-	}
+	URLs := make([]entities.URL, 0)
 
-	urlsGot := make([]URLGot, 0)
-
-	err = json.Unmarshal(bodyBytes, &urlsGot)
+	err = json.Unmarshal(bodyBytes, &URLs)
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		h.Log.Error("Error during unmarshalling JSON")
 		return
 	}
 
-	urlsToSave := make([]entities.URL, 0)
-
-	for i, url := range urlsGot {
-		//url shorting
-		urlShort := string(shortenURL([]byte(url.OriginalURL)))
-
-		urlsToSave = append(urlsToSave, entities.URL{
-			Short: urlShort,
-			Long:  url.OriginalURL,
-		})
-
-		urlsGot[i].ShortURL = h.Conf.BaseAddress + "/" + urlShort
-		urlsGot[i].OriginalURL = ""
-	}
-
-	//url saving
+	//get userID and short URLs
 	userIDFromContext := req.Context().Value(middlewares.UserIDContextKey)
 	userID, ok := (userIDFromContext).(int)
-	if (userIDFromContext != nil) && (ok) {
-		err = h.URLStorage.SaveBatchWithUserID(req.Context(), userID, urlsToSave)
+	if ok {
+		URLs, err = logic.ShortenBatch(req.Context(), URLs, h.Conf.BaseAddress, h.URLStorage, userID)
 	} else {
-		err = h.URLStorage.SaveBatch(req.Context(), urlsToSave)
+		URLs, err = logic.ShortenBatch(req.Context(), URLs, h.Conf.BaseAddress, h.URLStorage, -1)
 	}
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
-		h.Log.Error("Error while saving to DB", zap.Error(err))
+		h.Log.Errorf("Error while shortening batch of URLs: %v", err)
 		return
 	}
 
 	//response making
-	jsonResponse, err := json.Marshal(urlsGot)
+	jsonResponse, err := json.Marshal(URLs)
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
-		log.Default().Println("Error during marshalling JSON responce")
+		log.Default().Println("Error during marshalling JSON response")
 	}
 	res.Header().Set("Content-Type", "application/json")
 	res.WriteHeader(http.StatusCreated)

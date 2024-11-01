@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"github.com/Lesnoi3283/url_shortener/internal/app/logic"
 	"net/http"
 
 	"github.com/Lesnoi3283/url_shortener/config"
@@ -11,15 +12,9 @@ import (
 
 // UserURLsHandler is a handler struct. Use it`s ServeHTTP func.
 type UserURLsHandler struct {
-	URLStorage URLStorageInterface
+	URLStorage logic.URLStorageInterface
 	Conf       config.Config
 	Logger     zap.SugaredLogger
-}
-
-// URLData is a struct witch will help you to read a request body in a request to UserURLsHandler.
-type URLData struct {
-	ShortURL    string `json:"short_url"`
-	OriginalURL string `json:"original_url"`
 }
 
 // ServeHTTP returns a JSON array with all users`s urls.
@@ -37,29 +32,25 @@ func (h *UserURLsHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) 
 	userID := middlewares.GetUserID(token)
 	if userID == -1 {
 		h.Logger.Error("UserURLsHandler just got user id `-1` somehow. Probably JWT is not valid")
-		//res.WriteHeader(http.StatusInternalServerError)
 		res.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
-	URLDatas := make([]URLData, 0)
-	URLsFromDB, err := h.URLStorage.GetUserUrls(req.Context(), userID)
+	//get URLs
+	usersURLs, err := logic.GetUsersURLs(req.Context(), h.URLStorage, h.Conf.BaseAddress, userID)
 	if err != nil {
-		h.Logger.Error("UserURLsHandler error while trying to get user`s urls", zap.Error(err))
+		h.Logger.Error("UserURLsHandler get err", zap.Error(err))
 		res.WriteHeader(http.StatusInternalServerError)
 		return
-	} else if len(URLsFromDB) == 0 {
+	}
+	if len(usersURLs) == 0 {
 		res.WriteHeader(http.StatusNoContent)
+		h.Logger.Debugf("users urls is empty for user with ID = `%v`", userID)
 		return
 	}
-	for _, el := range URLsFromDB {
-		URLDatas = append(URLDatas, URLData{
-			ShortURL:    h.Conf.BaseAddress + "/" + el.Short,
-			OriginalURL: el.Long,
-		})
-	}
 
-	JSONResp, err := json.Marshal(URLDatas)
+	//make a response
+	JSONResp, err := json.Marshal(usersURLs)
 	if err != nil {
 		h.Logger.Error("UserURLsHandler error while marshalling JSON", zap.Error(err))
 		res.WriteHeader(http.StatusInternalServerError)
@@ -69,5 +60,4 @@ func (h *UserURLsHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) 
 	res.Header().Set("Content-Type", "application/json")
 	res.WriteHeader(http.StatusOK)
 	res.Write(JSONResp)
-
 }

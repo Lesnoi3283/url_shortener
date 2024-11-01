@@ -68,8 +68,8 @@ func (j *JSONFileStorage) Save(ctx context.Context, url entities.URL) error {
 
 	newData := data{
 		ID:  j.lastID + 1,
-		Key: url.Short,
-		Val: url.Long,
+		Key: url.ShortURL,
+		Val: url.OriginalURL,
 	}
 	JSONData, err := json.Marshal(newData)
 	JSONData = append(JSONData, '\n')
@@ -120,8 +120,8 @@ func (j *JSONFileStorage) SaveWithUserID(ctx context.Context, userID int, url en
 
 	newData := data{
 		ID:     j.lastID + 1,
-		Key:    url.Short,
-		Val:    url.Long,
+		Key:    url.ShortURL,
+		Val:    url.OriginalURL,
 		UserID: userID,
 	}
 	JSONData, err := json.Marshal(newData)
@@ -176,8 +176,8 @@ func (j *JSONFileStorage) SaveBatch(ctx context.Context, urls []entities.URL) er
 	for _, url := range urls {
 		newData := data{
 			ID:  j.lastID + 1,
-			Key: url.Short,
-			Val: url.Long,
+			Key: url.ShortURL,
+			Val: url.OriginalURL,
 		}
 		j.lastID++
 
@@ -234,8 +234,8 @@ func (j *JSONFileStorage) SaveBatchWithUserID(ctx context.Context, userID int, u
 	for _, url := range urls {
 		newData := data{
 			ID:     j.lastID + 1,
-			Key:    url.Short,
-			Val:    url.Long,
+			Key:    url.ShortURL,
+			Val:    url.OriginalURL,
 			UserID: userID,
 		}
 		j.lastID++
@@ -288,7 +288,7 @@ func (j *JSONFileStorage) GetUserUrls(ctx context.Context, userID int) (URLs []e
 		}
 
 		if lastData.UserID == userID {
-			URLs = append(URLs, entities.URL{Long: lastData.Val, Short: lastData.Key})
+			URLs = append(URLs, entities.URL{OriginalURL: lastData.Val, ShortURL: lastData.Key})
 		}
 	}
 
@@ -344,9 +344,9 @@ func (j *JSONFileStorage) CreateUser(ctx context.Context) (int, error) {
 	return userID, nil
 }
 
-// GetUserCount returns the total number of users in the database.
+// GetUsersCount returns the total number of users in the database.
 // JSONFileStorage DOESN`T SUPPORT IT NOW!
-func (j *JSONFileStorage) GetUserCount(ctx context.Context) (int, error) {
+func (j *JSONFileStorage) GetUsersCount(ctx context.Context) (int, error) {
 	return 0, ErrThisFuncIsNotSupported()
 }
 

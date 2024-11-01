@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"github.com/Lesnoi3283/url_shortener/config"
+	"github.com/Lesnoi3283/url_shortener/internal/app/logic"
 	"github.com/Lesnoi3283/url_shortener/internal/app/middlewares"
 	"github.com/go-chi/chi"
 	"go.uber.org/zap"
@@ -10,16 +11,18 @@ import (
 )
 
 // NewRouter builds new chi.Router with handlers. User just have to run it with http.ListenAndServe or something else.
-func NewRouter(conf config.Config, store URLStorageInterface, logger zap.SugaredLogger) (chi.Router, error) {
+func NewRouter(conf config.Config, store logic.URLStorageInterface, logger zap.SugaredLogger) (chi.Router, error) {
 	r := chi.NewRouter()
 
 	//handlers building
 	URLShortener := URLShortenerHandler{
 		Conf:       conf,
 		URLStorage: store,
+		Log:        logger,
 	}
 	shortURLRedirect := ShortURLRedirectHandler{
 		URLStorage: store,
+		Log:        logger,
 	}
 	shortener := ShortenHandler{
 		Conf:       conf,
@@ -42,7 +45,8 @@ func NewRouter(conf config.Config, store URLStorageInterface, logger zap.Sugared
 		Log:        logger,
 	}
 	pingDB := PingDBHandler{
-		DB: store,
+		DB:  store,
+		log: logger,
 	}
 	stats := StatsHandler{
 		log:     logger,

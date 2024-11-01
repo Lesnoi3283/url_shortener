@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/Lesnoi3283/url_shortener/internal/app/logic/mocks"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -8,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/Lesnoi3283/url_shortener/config"
-	"github.com/Lesnoi3283/url_shortener/internal/app/handlers/mocks"
 	"github.com/Lesnoi3283/url_shortener/pkg/databases"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"

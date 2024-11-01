@@ -1,4 +1,4 @@
-package handlers
+package logic
 
 import (
 	"testing"

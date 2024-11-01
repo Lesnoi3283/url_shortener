@@ -2,13 +2,14 @@ package handlers
 
 import (
 	"encoding/json"
+	"github.com/Lesnoi3283/url_shortener/internal/app/logic"
 	"go.uber.org/zap"
 	"net/http"
 )
 
 type StatsHandler struct {
 	log     zap.SugaredLogger
-	storage URLStorageInterface
+	storage logic.URLStorageInterface
 }
 
 type statsData struct {
@@ -17,19 +18,10 @@ type statsData struct {
 }
 
 func (h *StatsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	//get URLs count
-	urls, err := h.storage.GetShortURLCount(r.Context())
+	urls, users, err := logic.GetStats(r.Context(), h.storage)
 	if err != nil {
-		h.log.Errorf("cant get a short URLs count: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	//get users count
-	users, err := h.storage.GetUserCount(r.Context())
-	if err != nil {
-		h.log.Errorf("cant get a user count: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		h.log.Errorf("cant get stats, err: %v", err)
 		return
 	}
 

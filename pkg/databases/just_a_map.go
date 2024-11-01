@@ -28,8 +28,8 @@ func NewJustAMap() *JustAMap {
 func (j *JustAMap) SaveWithUserID(ctx context.Context, userID int, url entities.URL) error {
 	j.Mutex.Lock()
 	defer j.Mutex.Unlock()
-	j.Store[url.Short] = url.Long
-	j.UserStore[url.Short] = userID
+	j.Store[url.ShortURL] = url.OriginalURL
+	j.UserStore[url.ShortURL] = userID
 	return nil
 }
 
@@ -59,7 +59,7 @@ func (j *JustAMap) GetUserUrls(ctx context.Context, userID int) ([]entities.URL,
 	for short, full := range j.Store {
 		uID := j.UserStore[short]
 		if (uID == userID) && (uID != 0) {
-			toRet = append(toRet, entities.URL{Long: full, Short: short})
+			toRet = append(toRet, entities.URL{OriginalURL: full, ShortURL: short})
 		}
 	}
 
@@ -88,7 +88,7 @@ func (j *JustAMap) CreateUser(ctx context.Context) (int, error) {
 func (j *JustAMap) Save(ctx context.Context, url entities.URL) error {
 	j.Mutex.Lock()
 	defer j.Mutex.Unlock()
-	j.Store[url.Short] = url.Long
+	j.Store[url.ShortURL] = url.OriginalURL
 	return nil
 }
 
@@ -114,9 +114,9 @@ func (j *JustAMap) Get(ctx context.Context, key string) (toRet string, err error
 	return toRet, err
 }
 
-// GetUserCount returns the total number of users in the database.
+// GetUsersCount returns the total number of users in the database.
 // JustAMap DOESN`T SUPPORT IT NOW!
-func (j *JustAMap) GetUserCount(ctx context.Context) (int, error) {
+func (j *JustAMap) GetUsersCount(ctx context.Context) (int, error) {
 	return 0, ErrThisFuncIsNotSupported()
 }
 

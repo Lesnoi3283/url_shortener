@@ -3,7 +3,8 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
-	"github.com/Lesnoi3283/url_shortener/internal/app/handlers/mocks"
+	"github.com/Lesnoi3283/url_shortener/internal/app/logic"
+	"github.com/Lesnoi3283/url_shortener/internal/app/logic/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -37,7 +38,7 @@ func TestStatsHandler_ServeHTTP(t *testing.T) {
 
 	type fields struct {
 		log     *zap.SugaredLogger
-		storage URLStorageInterface
+		storage logic.URLStorageInterface
 	}
 	type args struct {
 		w http.ResponseWriter
@@ -54,7 +55,7 @@ func TestStatsHandler_ServeHTTP(t *testing.T) {
 			name: "ok",
 			fields: fields{
 				log: sugar,
-				storage: func() URLStorageInterface {
+				storage: func() logic.URLStorageInterface {
 					storage := mocks.NewMockURLStorageInterface(c)
 					storage.EXPECT().GetShortURLCount(gomock.Any()).Return(correctData.URLs, nil)
 					storage.EXPECT().GetUserCount(gomock.Any()).Return(correctData.Users, nil)
@@ -72,7 +73,7 @@ func TestStatsHandler_ServeHTTP(t *testing.T) {
 			name: "db error",
 			fields: fields{
 				log: sugar,
-				storage: func() URLStorageInterface {
+				storage: func() logic.URLStorageInterface {
 					storage := mocks.NewMockURLStorageInterface(c)
 					storage.EXPECT().GetShortURLCount(gomock.Any()).Return(0, errors.New("test db error"))
 					return storage

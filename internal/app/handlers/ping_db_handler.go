@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"github.com/Lesnoi3283/url_shortener/internal/app/logic"
+	"go.uber.org/zap"
 	"net/http"
 )
 
@@ -8,17 +10,16 @@ import (
 
 // PingDBHandler is a handler struct. Use it`s ServeHTTP func.
 type PingDBHandler struct {
-	DB URLStorageInterface
-	//todo: log
+	DB  logic.URLStorageInterface
+	log zap.SugaredLogger
 }
 
 // ServeHTTP returns http.StatusOK if database is active.
 func (p *PingDBHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	err := p.DB.Ping()
+	err := logic.PingDB(p.DB)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		//стоит ли тут в логгер выводить, что бд не работает?
-		//ответ: стоит.
+		p.log.Errorf("DB ping err: %v", err)
 		return
 	} else {
 		w.WriteHeader(http.StatusOK)
