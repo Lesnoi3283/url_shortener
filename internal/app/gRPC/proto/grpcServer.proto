@@ -1,0 +1,65 @@
+syntax = "proto3";
+package grpc_server;
+option go_package="github.com/Lesnoi3283/url_shortener/internal/app/proto";
+
+import "google/protobuf/empty.proto";
+
+//requests
+
+message DeleteURLsRequest{
+  repeated string URLs = 1;
+}
+
+message GetOriginalURLRequest{
+  string short_url = 1;
+}
+message GetAnOriginalURLResponse{
+  string url = 1;
+}
+
+message ShortenRequest{
+  string original_url = 1;
+}
+message ShortenResponse{
+  string shorten = 1;
+}
+
+
+message ShortenBatchRequest{
+  message URL {
+    string correlation_id = 1;
+    string original_url = 2;
+  }
+  repeated URL urls = 1;
+}
+message ShortenBatchResponse{
+  message URL {
+    string correlation_id = 1;
+    string shorten_url = 2;
+  }
+  repeated URL urls = 1;
+}
+
+message StatsResponse{
+  uint32 users_amount = 1;
+  uint64 urls_amount = 2;
+}
+
+message UsersURLsResponse{
+  message URL {
+    string short = 1;
+    string original = 2;
+  }
+  repeated URL urls = 1;
+}
+
+
+service URLShortenerService{
+  rpc DeleteURLs(DeleteURLsRequest) returns (google.protobuf.Empty);
+  rpc GetOriginalURL(GetOriginalURLRequest) returns (GetAnOriginalURLResponse);
+  rpc PingDB(google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc Shorten(ShortenRequest) returns (ShortenResponse);
+  rpc ShortenBatch(ShortenBatchRequest) returns (ShortenBatchResponse);
+  rpc Stats(google.protobuf.Empty) returns (StatsResponse);
+  rpc UserURLs(google.protobuf.Empty) returns (UsersURLsResponse);
+}
