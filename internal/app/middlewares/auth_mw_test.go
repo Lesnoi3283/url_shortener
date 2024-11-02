@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"github.com/Lesnoi3283/url_shortener/pkg/secure"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -13,10 +14,13 @@ import (
 )
 
 func TestAuthMW_WithValidJWT(t *testing.T) {
+	//prepare JWTHelper
+	jh := secure.NewJWTHelper("testSecretKey", 5)
 
 	//prepare data
 	correctUserID := 1
-	correctJWTString, err := BuildNewJWTString(correctUserID)
+
+	correctJWTString, err := jh.BuildNewJWTString(correctUserID)
 	require.NoError(t, err, "Err while preparing test")
 
 	//prepare mocks
@@ -46,7 +50,7 @@ func TestAuthMW_WithValidJWT(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	//test MW
-	mw := AuthMW(store, *sugar)
+	mw := AuthMW(store, *sugar, jh)
 	mw(nextHandler).ServeHTTP(w, r)
 
 	//check result
@@ -67,6 +71,9 @@ func TestAuthMW_NoJWT(t *testing.T) {
 	logger := zaptest.NewLogger(t)
 	sugar := logger.Sugar()
 
+	//prepare JWTHelper
+	jh := secure.NewJWTHelper("testSecretKey", 5)
+
 	//prepare handler witch will check our MW
 	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userID := r.Context().Value(UserIDContextKey)
@@ -81,7 +88,7 @@ func TestAuthMW_NoJWT(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	//test MW
-	mw := AuthMW(store, *sugar)
+	mw := AuthMW(store, *sugar, jh)
 	mw(nextHandler).ServeHTTP(w, r)
 
 	//check result
@@ -89,10 +96,12 @@ func TestAuthMW_NoJWT(t *testing.T) {
 }
 
 func BenchmarkAuthMW(b *testing.B) {
+	//prepare JWTHelper
+	jh := secure.NewJWTHelper("testSecretKey", 5)
 
 	//prepare data
 	correctUserID := 1
-	correctJWTString, err := BuildNewJWTString(correctUserID)
+	correctJWTString, err := jh.BuildNewJWTString(correctUserID)
 	require.NoError(b, err, "Err while preparing test")
 
 	//prepare mocks
@@ -110,7 +119,7 @@ func BenchmarkAuthMW(b *testing.B) {
 	})
 
 	//test MW
-	mw := AuthMW(store, *sugar)
+	mw := AuthMW(store, *sugar, jh)
 	testable := mw(nextHandler)
 
 	b.Run("With JWT", func(b *testing.B) {

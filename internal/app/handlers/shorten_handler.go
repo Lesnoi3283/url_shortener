@@ -56,19 +56,13 @@ func (h *ShortenHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	} else {
 		urlShort, err = logic.Shorten(req.Context(), []byte(realURL.Val), h.Conf.BaseAddress, h.URLStorage, -1)
 	}
-	if err != nil {
-		res.WriteHeader(http.StatusInternalServerError)
-		h.Log.Errorf("Error while shortening URL '%s': %v", realURL.Val, err)
-		return
-	}
-
 	var alrExErr *databases.AlreadyExistsError
 	if errors.As(err, &alrExErr) {
 		urlShort = alrExErr.ShortURL
 		successStatus = http.StatusConflict
 	} else if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
-		h.Log.Error("Error while saving to DB", zap.Error(err))
+		h.Log.Errorf("Error while shortening URL '%s': %v", realURL.Val, err)
 		return
 	}
 

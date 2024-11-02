@@ -32,7 +32,7 @@ func AuthMW(store UserCreater, logger zap.SugaredLogger, jh *secure.JWTHelper) f
 			cookie, err := r.Cookie(JwtCookieName)
 			if err == nil {
 				userID, err := jh.GetUserID(cookie.Value)
-				if err != nil {
+				if err == nil {
 					ctx := context.WithValue(r.Context(), UserIDContextKey, userID)
 					next.ServeHTTP(w, r.WithContext(ctx))
 					return

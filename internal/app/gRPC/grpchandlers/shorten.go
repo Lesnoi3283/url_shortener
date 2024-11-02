@@ -26,7 +26,7 @@ func (s *ShortenerServer) Shorten(ctx context.Context, req *proto.ShortenRequest
 
 	//shorten
 	short, err := logic.Shorten(ctx, []byte(req.OriginalUrl), s.Conf.BaseAddress, s.Storage, userIDInt)
-	var alrExistsErr databases.AlreadyExistsError
+	alrExistsErr := &databases.AlreadyExistsError{}
 	if errors.As(err, &alrExistsErr) {
 		short = alrExistsErr.ShortURL
 		return &proto.ShortenResponse{Shorten: short}, status.Error(codes.AlreadyExists, "Already exists")
