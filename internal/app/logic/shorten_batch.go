@@ -28,7 +28,7 @@ func ShortenBatch(ctx context.Context, URLs []entities.URL, baseAddress string, 
 	}
 
 	//adding base address to return
-	for i, _ := range URLs {
+	for i := range URLs {
 		URLs[i].ShortURL = baseAddress + "/" + URLs[i].ShortURL
 	}
 	return URLs, nil

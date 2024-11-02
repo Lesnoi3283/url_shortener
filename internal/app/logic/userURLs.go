@@ -12,7 +12,7 @@ func GetUsersURLs(ctx context.Context, storage URLStorageInterface, baseAddress 
 	if err != nil {
 		return nil, err
 	}
-	for i, _ := range usersURLs {
+	for i := range usersURLs {
 		usersURLs[i].ShortURL = baseAddress + "/" + usersURLs[i].ShortURL
 	}
 	return usersURLs, nil
