@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"github.com/Lesnoi3283/url_shortener/internal/app/logic"
+	"github.com/Lesnoi3283/url_shortener/pkg/secure"
 	"net/http"
 
 	"github.com/Lesnoi3283/url_shortener/config"
@@ -15,6 +16,7 @@ type UserURLsHandler struct {
 	URLStorage logic.URLStorageInterface
 	Conf       config.Config
 	Logger     zap.SugaredLogger
+	JWTHelper  *secure.JWTHelper
 }
 
 // ServeHTTP returns a JSON array with all users`s urls.
@@ -29,9 +31,9 @@ func (h *UserURLsHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) 
 
 	//CTX is not needed! Because user MUST be authorised BEFORE this request! GitHub tests sayed me that...
 	token := cookie.Value
-	userID := middlewares.GetUserID(token)
-	if userID == -1 {
-		h.Logger.Error("UserURLsHandler just got user id `-1` somehow. Probably JWT is not valid")
+	userID, err := h.JWTHelper.GetUserID(token)
+	if userID == -1 || err != nil {
+		h.Logger.Errorf("UserURLsHandler just got user id `-1` somehow. Probably JWT is not valid. Err: %v", err)
 		res.WriteHeader(http.StatusUnauthorized)
 		return
 	}

@@ -1,4 +1,4 @@
-package secur
+package secure
 
 import (
 	"fmt"
@@ -25,7 +25,7 @@ type JWTHelper struct {
 func NewJWTHelper(secretKey string, tokenTimeoutHours int) *JWTHelper {
 	return &JWTHelper{
 		secretKey: secretKey,
-		TokenExp:  time.Duration(tokenTimeoutHours * time.Hour),
+		TokenExp:  time.Duration(tokenTimeoutHours) * time.Hour,
 	}
 }
 
@@ -51,7 +51,7 @@ func (j *JWTHelper) BuildNewJWTString(userID int) (string, error) {
 }
 
 // GetUserID parses JWT and returns a userID from it.
-func (j *JWTHelper) GetUserID(tokenString string) int {
+func (j *JWTHelper) GetUserID(tokenString string) (int, error) {
 	j.m.Lock()
 	defer j.m.Unlock()
 
@@ -61,12 +61,12 @@ func (j *JWTHelper) GetUserID(tokenString string) int {
 			return []byte(j.secretKey), nil
 		})
 	if err != nil {
-		return -1
+		return -1, fmt.Errorf("parsing token: %w", err)
 	}
 
 	if !token.Valid {
-		return -1
+		return -1, NewErrTokenIsNotValid()
 	}
 
-	return claims.UserID
+	return claims.UserID, nil
 }

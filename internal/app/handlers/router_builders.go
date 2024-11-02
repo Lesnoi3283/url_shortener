@@ -5,13 +5,14 @@ import (
 	"github.com/Lesnoi3283/url_shortener/config"
 	"github.com/Lesnoi3283/url_shortener/internal/app/logic"
 	"github.com/Lesnoi3283/url_shortener/internal/app/middlewares"
+	"github.com/Lesnoi3283/url_shortener/pkg/secure"
 	"github.com/go-chi/chi"
 	"go.uber.org/zap"
 	"net"
 )
 
 // NewRouter builds new chi.Router with handlers. User just have to run it with http.ListenAndServe or something else.
-func NewRouter(conf config.Config, store logic.URLStorageInterface, logger zap.SugaredLogger) (chi.Router, error) {
+func NewRouter(conf config.Config, store logic.URLStorageInterface, logger zap.SugaredLogger, JWTHelper *secure.JWTHelper) (chi.Router, error) {
 	r := chi.NewRouter()
 
 	//handlers building
@@ -53,10 +54,7 @@ func NewRouter(conf config.Config, store logic.URLStorageInterface, logger zap.S
 		storage: store,
 	}
 
-	r.Use(middlewares.LoggerMW(logger))
-	r.Use(middlewares.CompressionMW(logger))
-	r.Use(middlewares.AuthMW(store, logger))
-
+	//set middlewares
 	trustedSubnet := &net.IPNet{}
 	if conf.TrustedSubnet != "" {
 		var err error
@@ -65,6 +63,10 @@ func NewRouter(conf config.Config, store logic.URLStorageInterface, logger zap.S
 			return nil, fmt.Errorf("error parsing trusted subnet: %w", err)
 		}
 	}
+
+	r.Use(middlewares.LoggerMW(logger))
+	r.Use(middlewares.CompressionMW(logger))
+	r.Use(middlewares.AuthMW(store, logger, JWTHelper))
 	r.Use(middlewares.SubnetFilterMW(trustedSubnet, logger))
 
 	r.Get("/api/user/urls", userURLs.ServeHTTP)

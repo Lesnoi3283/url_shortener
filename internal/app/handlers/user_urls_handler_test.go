@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/Lesnoi3283/url_shortener/internal/app/logic"
 	"github.com/Lesnoi3283/url_shortener/internal/app/logic/mocks"
+	"github.com/Lesnoi3283/url_shortener/pkg/secure"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -41,7 +42,9 @@ func TestUserURLsHandler_ServeHTTP(t *testing.T) {
 		BaseAddress: "http://baseAddress",
 	}
 
-	correctJWTToken, err := middlewares.BuildNewJWTString(correctUserID)
+	jh := secure.NewJWTHelper("testSecretKey", 5)
+
+	correctJWTToken, err := jh.BuildNewJWTString(correctUserID)
 	require.NoErrorf(t, err, "error while building JWT in test: %v", err)
 	buildARequestWithJWT := func(token string) *http.Request {
 		//build a request and add a cookie to it
@@ -180,6 +183,7 @@ func TestUserURLsHandler_ServeHTTP(t *testing.T) {
 				URLStorage: tt.fields.URLStorage,
 				Conf:       tt.fields.Conf,
 				Logger:     tt.fields.Logger,
+				JWTHelper:  jh,
 			}
 			h.ServeHTTP(tt.args.res, tt.args.req)
 			assert.Equal(t, tt.fields.StatusWant, tt.args.res.Code)
@@ -205,7 +209,9 @@ func BenchmarkUserURLsHandler_ServeHTTP(b *testing.B) {
 		BaseAddress: "http://baseAddress",
 	}
 
-	correctJWTToken, err := middlewares.BuildNewJWTString(correctUserID)
+	jh := secure.NewJWTHelper("testSecretKey", 5)
+
+	correctJWTToken, err := jh.BuildNewJWTString(correctUserID)
 	require.NoErrorf(b, err, "error while building JWT in test: %v", err)
 	buildARequestWithJWT := func(token string) *http.Request {
 		//build a request and add a cookie to it

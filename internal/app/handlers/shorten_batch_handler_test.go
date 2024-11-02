@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"github.com/Lesnoi3283/url_shortener/internal/app/logic/mocks"
+	"github.com/Lesnoi3283/url_shortener/pkg/secure"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -60,7 +61,9 @@ func TestShortenBatchHandler_ServeHTTP(t *testing.T) {
 	defer zapTestLogger.Sync()
 	sugar := zapTestLogger.Sugar()
 
-	r, err := NewRouter(conf, URLStore, *sugar)
+	jh := secure.NewJWTHelper("testSecretKey", 5)
+
+	r, err := NewRouter(conf, URLStore, *sugar, jh)
 	require.NoError(t, err, "error while creating a router in test")
 	ts := httptest.NewServer(r)
 
