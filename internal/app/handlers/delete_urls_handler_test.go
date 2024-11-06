@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"github.com/Lesnoi3283/url_shortener/internal/app/logic"
+	"github.com/Lesnoi3283/url_shortener/internal/app/logic/mocks"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
-	"github.com/Lesnoi3283/url_shortener/internal/app/handlers/mocks"
 	"github.com/Lesnoi3283/url_shortener/internal/app/middlewares"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -37,7 +38,7 @@ func TestDeleteURLsHandler_ServeHTTP(t *testing.T) {
 	defer c.Finish()
 
 	type fields struct {
-		URLStorage URLStorageInterface
+		URLStorage logic.URLStorageInterface
 		//Conf       config.Config
 		Log zap.SugaredLogger
 	}
@@ -54,7 +55,7 @@ func TestDeleteURLsHandler_ServeHTTP(t *testing.T) {
 		{
 			name: "Ok",
 			fields: fields{
-				URLStorage: func() URLStorageInterface {
+				URLStorage: func() logic.URLStorageInterface {
 					URLsToDeleteChan := make(chan string)
 					storage := mocks.NewMockURLStorageInterface(c)
 					storage.EXPECT().DeleteBatchWithUserID(coorectUserID).Return(URLsToDeleteChan, nil)

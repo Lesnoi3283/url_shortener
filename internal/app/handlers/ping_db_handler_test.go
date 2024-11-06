@@ -2,16 +2,20 @@ package handlers
 
 import (
 	"database/sql"
+	"github.com/Lesnoi3283/url_shortener/internal/app/logic/mocks"
+	"go.uber.org/zap/zaptest"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/Lesnoi3283/url_shortener/internal/app/handlers/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_pingDBHandler_ServeHTTP(t *testing.T) {
+
+	logger := zaptest.NewLogger(t)
+	sugar := logger.Sugar()
 
 	tests := []struct {
 		name          string
@@ -41,7 +45,8 @@ func Test_pingDBHandler_ServeHTTP(t *testing.T) {
 			tt.mockSetupFunc(db)
 
 			p := &PingDBHandler{
-				DB: db,
+				DB:  db,
+				log: *sugar,
 			}
 
 			req, err := http.NewRequest("GET", "/ping", nil)
@@ -64,7 +69,13 @@ func BenchmarkPingDBHandler_ServeHTTP(b *testing.B) {
 	db := mocks.NewMockURLStorageInterface(mockController)
 	db.EXPECT().Ping().Return(nil).AnyTimes()
 
-	handler := PingDBHandler{DB: db}
+	logger := zaptest.NewLogger(b)
+	sugar := logger.Sugar()
+
+	handler := PingDBHandler{
+		DB:  db,
+		log: *sugar,
+	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

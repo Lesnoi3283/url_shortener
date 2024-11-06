@@ -3,13 +3,15 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"github.com/Lesnoi3283/url_shortener/internal/app/logic"
+	"github.com/Lesnoi3283/url_shortener/internal/app/logic/mocks"
+	"github.com/Lesnoi3283/url_shortener/pkg/secure"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/Lesnoi3283/url_shortener/config"
 	"github.com/Lesnoi3283/url_shortener/internal/app/entities"
-	"github.com/Lesnoi3283/url_shortener/internal/app/handlers/mocks"
 	"github.com/Lesnoi3283/url_shortener/internal/app/middlewares"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -29,18 +31,20 @@ func TestUserURLsHandler_ServeHTTP(t *testing.T) {
 	correctUserID := 1
 	correctURLs := make([]entities.URL, 0)
 	correctURLs = append(correctURLs, entities.URL{
-		Short: "someUrlShort",
-		Long:  "http://someUrlLong",
+		ShortURL:    "someUrlShort",
+		OriginalURL: "http://someUrlLong",
 	}, entities.URL{
-		Short: "someUrlShort2",
-		Long:  "http://someUrlLong2",
+		ShortURL:    "someUrlShort2",
+		OriginalURL: "http://someUrlLong2",
 	})
 
 	conf := config.Config{
 		BaseAddress: "http://baseAddress",
 	}
 
-	correctJWTToken, err := middlewares.BuildNewJWTString(correctUserID)
+	jh := secure.NewJWTHelper("testSecretKey", 5)
+
+	correctJWTToken, err := jh.BuildNewJWTString(correctUserID)
 	require.NoErrorf(t, err, "error while building JWT in test: %v", err)
 	buildARequestWithJWT := func(token string) *http.Request {
 		//build a request and add a cookie to it
@@ -61,7 +65,7 @@ func TestUserURLsHandler_ServeHTTP(t *testing.T) {
 	sugar := logger.Sugar()
 
 	type fields struct {
-		URLStorage URLStorageInterface
+		URLStorage logic.URLStorageInterface
 		Conf       config.Config
 		Logger     zap.SugaredLogger
 		StatusWant int
@@ -79,7 +83,7 @@ func TestUserURLsHandler_ServeHTTP(t *testing.T) {
 		{
 			name: "ok",
 			fields: fields{
-				URLStorage: func() URLStorageInterface {
+				URLStorage: func() logic.URLStorageInterface {
 					//mock storage
 					storage := mocks.NewMockURLStorageInterface(c)
 					storage.EXPECT().GetUserUrls(gomock.Any(), correctUserID).Return(correctURLs, nil)
@@ -92,11 +96,11 @@ func TestUserURLsHandler_ServeHTTP(t *testing.T) {
 					//marshal URLs (using local structure because it has required JSON tags)
 					URLs := make([]testURLData, 0)
 					URLs = append(URLs, testURLData{
-						ShortURL:    conf.BaseAddress + "/" + correctURLs[0].Short,
-						OriginalURL: correctURLs[0].Long,
+						ShortURL:    conf.BaseAddress + "/" + correctURLs[0].ShortURL,
+						OriginalURL: correctURLs[0].OriginalURL,
 					}, testURLData{
-						ShortURL:    conf.BaseAddress + "/" + correctURLs[1].Short,
-						OriginalURL: correctURLs[1].Long,
+						ShortURL:    conf.BaseAddress + "/" + correctURLs[1].ShortURL,
+						OriginalURL: correctURLs[1].OriginalURL,
 					})
 					JSON, err := json.Marshal(URLs)
 					require.NoError(t, err, "error while marshalling test URLs for response")
@@ -139,7 +143,7 @@ func TestUserURLsHandler_ServeHTTP(t *testing.T) {
 		{
 			name: "No URLs",
 			fields: fields{
-				URLStorage: func() URLStorageInterface {
+				URLStorage: func() logic.URLStorageInterface {
 					storage := mocks.NewMockURLStorageInterface(c)
 					storage.EXPECT().GetUserUrls(gomock.Any(), correctUserID).Return(make([]entities.URL, 0), nil)
 					return storage
@@ -157,7 +161,7 @@ func TestUserURLsHandler_ServeHTTP(t *testing.T) {
 		{
 			name: "DB error",
 			fields: fields{
-				URLStorage: func() URLStorageInterface {
+				URLStorage: func() logic.URLStorageInterface {
 					storage := mocks.NewMockURLStorageInterface(c)
 					storage.EXPECT().GetUserUrls(gomock.Any(), correctUserID).Return(make([]entities.URL, 0), errors.New("db error"))
 					return storage
@@ -179,6 +183,7 @@ func TestUserURLsHandler_ServeHTTP(t *testing.T) {
 				URLStorage: tt.fields.URLStorage,
 				Conf:       tt.fields.Conf,
 				Logger:     tt.fields.Logger,
+				JWTHelper:  jh,
 			}
 			h.ServeHTTP(tt.args.res, tt.args.req)
 			assert.Equal(t, tt.fields.StatusWant, tt.args.res.Code)
@@ -193,18 +198,20 @@ func BenchmarkUserURLsHandler_ServeHTTP(b *testing.B) {
 	correctUserID := 1
 	correctURLs := make([]entities.URL, 0)
 	correctURLs = append(correctURLs, entities.URL{
-		Short: "someUrlShort",
-		Long:  "http://someUrlLong",
+		ShortURL:    "someUrlShort",
+		OriginalURL: "http://someUrlLong",
 	}, entities.URL{
-		Short: "someUrlShort2",
-		Long:  "http://someUrlLong2",
+		ShortURL:    "someUrlShort2",
+		OriginalURL: "http://someUrlLong2",
 	})
 
 	conf := config.Config{
 		BaseAddress: "http://baseAddress",
 	}
 
-	correctJWTToken, err := middlewares.BuildNewJWTString(correctUserID)
+	jh := secure.NewJWTHelper("testSecretKey", 5)
+
+	correctJWTToken, err := jh.BuildNewJWTString(correctUserID)
 	require.NoErrorf(b, err, "error while building JWT in test: %v", err)
 	buildARequestWithJWT := func(token string) *http.Request {
 		//build a request and add a cookie to it

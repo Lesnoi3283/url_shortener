@@ -3,6 +3,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"github.com/Lesnoi3283/url_shortener/internal/app/logic"
 	"net/http"
 
 	"github.com/Lesnoi3283/url_shortener/config"
@@ -12,7 +13,7 @@ import (
 
 // DeleteURLsHandler is a handler struct. Use it`s ServeHTTP func.
 type DeleteURLsHandler struct {
-	URLStorage URLStorageInterface
+	URLStorage logic.URLStorageInterface
 	Conf       config.Config
 	Log        zap.SugaredLogger
 }
@@ -35,25 +36,17 @@ func (h *DeleteURLsHandler) ServeHTTP(res http.ResponseWriter, req *http.Request
 	userIDFromContext := req.Context().Value(middlewares.UserIDContextKey)
 	userID, ok := (userIDFromContext).(int)
 	if userIDFromContext == nil || !ok {
-		//res.WriteHeader(http.StatusInternalServerError)
 		res.WriteHeader(http.StatusUnauthorized)
 		h.Log.Error("UserID is nil")
 		return
 	}
 
-	inputCh, err := h.URLStorage.DeleteBatchWithUserID(userID)
+	err = logic.DeleteURLs(userID, shortURLs, h.URLStorage)
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
-		h.Log.Error("Error while deleting URLs", zap.Error(err))
+		h.Log.Error("Error while deleting urls", zap.Error(err))
 		return
 	}
-	//fan-out
-	go func() {
-		defer close(inputCh)
-		for _, URL := range shortURLs {
-			inputCh <- URL
-		}
-	}()
 
 	res.Header().Set("Content-Type", "application/json")
 	res.WriteHeader(http.StatusAccepted)

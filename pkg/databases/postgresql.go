@@ -54,7 +54,7 @@ func NewPostgresql(connStr string) (*Postgresql, error) {
 func (p *Postgresql) Save(ctx context.Context, url entities.URL) error {
 	query := "INSERT INTO user_urls_table (long, short) VALUES ($1, $2) ON CONFLICT (long) DO NOTHING;"
 
-	result, err := p.store.ExecContext(ctx, query, url.Long, url.Short)
+	result, err := p.store.ExecContext(ctx, query, url.OriginalURL, url.ShortURL)
 	if err != nil {
 		return fmt.Errorf("postgres execute: %w", err)
 	}
@@ -67,7 +67,7 @@ func (p *Postgresql) Save(ctx context.Context, url entities.URL) error {
 		//в случае если ссылка уже была сохранена ранее
 		shortURL := ""
 		query2 := "SELECT short FROM user_urls_table WHERE long = $1;"
-		row := p.store.QueryRowContext(ctx, query2, url.Long)
+		row := p.store.QueryRowContext(ctx, query2, url.OriginalURL)
 
 		err = row.Scan(&shortURL)
 		if err != nil {
@@ -83,7 +83,7 @@ func (p *Postgresql) Save(ctx context.Context, url entities.URL) error {
 func (p *Postgresql) SaveWithUserID(ctx context.Context, userID int, url entities.URL) error {
 	query := "INSERT INTO user_urls_table (user_id, long, short) VALUES ($1, $2, $3) ON CONFLICT (long) DO NOTHING;"
 
-	result, err := p.store.ExecContext(ctx, query, userID, url.Long, url.Short)
+	result, err := p.store.ExecContext(ctx, query, userID, url.OriginalURL, url.ShortURL)
 	if err != nil {
 		return fmt.Errorf("postgres execute: %w", err)
 	}
@@ -95,7 +95,7 @@ func (p *Postgresql) SaveWithUserID(ctx context.Context, userID int, url entitie
 	if rowsAffected == 0 {
 		shortURL := ""
 		query2 := "SELECT short FROM user_urls_table WHERE long = $1;"
-		row := p.store.QueryRowContext(ctx, query2, url.Long)
+		row := p.store.QueryRowContext(ctx, query2, url.OriginalURL)
 
 		err = row.Scan(&shortURL)
 		if err != nil {
@@ -116,7 +116,7 @@ func (p *Postgresql) SaveBatch(ctx context.Context, urls []entities.URL) error {
 	query := "INSERT INTO user_urls_table (long, short) VALUES ($1, $2);"
 
 	for _, url := range urls {
-		_, err = tx.ExecContext(ctx, query, url.Long, url.Short)
+		_, err = tx.ExecContext(ctx, query, url.OriginalURL, url.ShortURL)
 		if err != nil {
 			tx.Rollback()
 		}
@@ -139,7 +139,7 @@ func (p *Postgresql) SaveBatchWithUserID(ctx context.Context, userID int, urls [
 	query := "INSERT INTO user_urls_table (user_id, long, short) VALUES ($1, $2, $3);"
 
 	for _, url := range urls {
-		_, err = tx.ExecContext(ctx, query, userID, url.Long, url.Short)
+		_, err = tx.ExecContext(ctx, query, userID, url.OriginalURL, url.ShortURL)
 		if err != nil {
 			tx.Rollback()
 			return fmt.Errorf("postgres, transaction error: %w", err)
@@ -213,7 +213,7 @@ func (p *Postgresql) GetUserUrls(ctx context.Context, userID int) ([]entities.UR
 
 	for rows.Next() {
 		var url entities.URL
-		if err := rows.Scan(&url.Long, &url.Short); err != nil {
+		if err := rows.Scan(&url.OriginalURL, &url.ShortURL); err != nil {
 			return nil, fmt.Errorf("postgres row scan: %w", err)
 		}
 		urls = append(urls, url)
@@ -248,4 +248,32 @@ func (p *Postgresql) CreateUser(ctx context.Context) (int, error) {
 	}
 
 	return userID, nil
+}
+
+// GetUsersCount returns the total number of users in the database.
+func (p *Postgresql) GetUsersCount(ctx context.Context) (int, error) {
+	query := "SELECT COUNT(*) FROM users;"
+
+	var userCount int
+
+	err := p.store.QueryRowContext(ctx, query).Scan(&userCount)
+	if err != nil {
+		return 0, fmt.Errorf("postgres get user count: %w", err)
+	}
+
+	return userCount, nil
+}
+
+// GetShortURLCount returns the total number of short URLs in the database.
+func (p *Postgresql) GetShortURLCount(ctx context.Context) (int, error) {
+	query := "SELECT COUNT(*) FROM user_urls_table;"
+
+	var urlCount int
+
+	err := p.store.QueryRowContext(ctx, query).Scan(&urlCount)
+	if err != nil {
+		return 0, fmt.Errorf("postgres get short URL count: %w", err)
+	}
+
+	return urlCount, nil
 }

@@ -1,37 +1,22 @@
 package handlers
 
 import (
-	"context"
 	"errors"
+	"github.com/Lesnoi3283/url_shortener/internal/app/logic"
+	"go.uber.org/zap"
 	"io"
-	"log"
 	"net/http"
 
 	"github.com/Lesnoi3283/url_shortener/config"
-	"github.com/Lesnoi3283/url_shortener/internal/app/entities"
 	"github.com/Lesnoi3283/url_shortener/internal/app/middlewares"
 	"github.com/Lesnoi3283/url_shortener/pkg/databases"
 	"github.com/go-chi/chi"
 )
 
-//go:generate mockgen -source=url_shortener_handler.go -destination=mocks/mock_DBInterface.go -package=mocks github.com/Lesnoi3283/url_shortener/internal/app/handlers URLStorageInterface
-
-// URLStorageInterface is a main database interface.
-type URLStorageInterface interface {
-	Save(ctx context.Context, url entities.URL) error
-	SaveBatch(ctx context.Context, urls []entities.URL) error
-	Get(ctx context.Context, short string) (full string, err error)
-	SaveWithUserID(ctx context.Context, userID int, url entities.URL) error
-	SaveBatchWithUserID(ctx context.Context, userID int, urls []entities.URL) error
-	DeleteBatchWithUserID(userID int) (urlsChan chan string, err error)
-	GetUserUrls(ctx context.Context, userID int) ([]entities.URL, error)
-	Ping() error
-	CreateUser(ctx context.Context) (int, error)
-}
-
 // ShortURLRedirectHandler is a handler struct. Use it`s ServeHTTP func.
 type ShortURLRedirectHandler struct {
-	URLStorage URLStorageInterface
+	URLStorage logic.URLStorageInterface
+	Log        zap.SugaredLogger
 }
 
 // ServeHTTP reads short URL from given URLParam and redirects user to an original URL.
@@ -40,14 +25,14 @@ func (h *ShortURLRedirectHandler) ServeHTTP(res http.ResponseWriter, req *http.R
 	shorted := chi.URLParam(req, "url")
 
 	//reading from DB
-	fullURL, err := h.URLStorage.Get(req.Context(), shorted)
+	fullURL, err := logic.GetOriginalURL(req.Context(), shorted, h.URLStorage)
 	if errors.Is(err, databases.ErrURLWasDeleted()) {
 		res.WriteHeader(http.StatusGone)
 		return
 	}
 	if err != nil {
 		res.WriteHeader(http.StatusBadRequest)
-		log.Default().Printf("fullURL was not found: %v\n", err)
+		h.Log.Warnf("error while getting an original URL: %v", err)
 		return
 	}
 
@@ -59,7 +44,8 @@ func (h *ShortURLRedirectHandler) ServeHTTP(res http.ResponseWriter, req *http.R
 // URLShortenerHandler is a handler struct. Use it`s ServeHTTP func.
 type URLShortenerHandler struct {
 	Conf       config.Config
-	URLStorage URLStorageInterface
+	URLStorage logic.URLStorageInterface
+	Log        zap.SugaredLogger
 }
 
 // ServeHTTP shorts a given URL (plain text), saves it in a storage and returns a short version.
@@ -71,41 +57,28 @@ func (h *URLShortenerHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 	realURLBytes, err := io.ReadAll(req.Body)
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
-		log.Default().Println("Error while reading reqBody")
+		h.Log.Errorf("Error while reading reqBody: %v", err)
 		return
 	}
 
-	//url shorting
-	//hasher := sha256.New()
-	//hasher.Write(str)
-	//urlShort := fmt.Sprintf("%x", hasher.Sum(nil)) //optimizing:
-	urlShort := string(shortenURL(realURLBytes))
-
 	//url saving
-	realURL := string(realURLBytes)
 	userIDFromContext := req.Context().Value(middlewares.UserIDContextKey)
 	userID, ok := (userIDFromContext).(int)
+	var shortURL string
 	if (userIDFromContext != nil) && (ok) {
-		err = h.URLStorage.SaveWithUserID(req.Context(), userID, entities.URL{
-			Short: urlShort,
-			Long:  realURL,
-		})
+		shortURL, err = logic.Shorten(req.Context(), realURLBytes, h.Conf.BaseAddress, h.URLStorage, userID)
 	} else {
-		err = h.URLStorage.Save(req.Context(), entities.URL{
-			Short: urlShort,
-			Long:  realURL,
-		})
+		shortURL, err = logic.Shorten(req.Context(), realURLBytes, h.Conf.BaseAddress, h.URLStorage, -1)
 	}
 
 	if err != nil {
 		var alrExErr *databases.AlreadyExistsError
 		if errors.As(err, &alrExErr) {
-			urlShort = alrExErr.ShortURL
+			shortURL = alrExErr.ShortURL
 			successStatus = http.StatusConflict
 		} else {
 			res.WriteHeader(http.StatusInternalServerError)
-			log.Default().Println("Error while saving to DB")
-			log.Default().Println(err)
+			h.Log.Errorf("Error while shortening URL: %v\n", err)
 			return
 		}
 	}
@@ -113,5 +86,5 @@ func (h *URLShortenerHandler) ServeHTTP(res http.ResponseWriter, req *http.Reque
 	//response making
 	res.Header().Set("Content-Type", "text/plain")
 	res.WriteHeader(successStatus)
-	res.Write([]byte(h.Conf.BaseAddress + "/" + urlShort))
+	res.Write([]byte(h.Conf.BaseAddress + "/" + shortURL))
 }

@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"github.com/Lesnoi3283/url_shortener/internal/app/logic/mocks"
+	"github.com/Lesnoi3283/url_shortener/pkg/secure"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -8,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/Lesnoi3283/url_shortener/config"
-	"github.com/Lesnoi3283/url_shortener/internal/app/handlers/mocks"
 	"github.com/Lesnoi3283/url_shortener/pkg/databases"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -63,7 +64,11 @@ func TestURLShortenerHandler(t *testing.T) {
 	defer zapTestLogger.Sync()
 	sugar := zapTestLogger.Sugar()
 
-	ts := httptest.NewServer(NewRouter(conf, URLStore, *sugar))
+	jh := secure.NewJWTHelper("testSecretKey", 5)
+
+	r, err := NewRouter(conf, URLStore, *sugar, jh)
+	require.NoError(t, err, "error while creating a router in test")
+	ts := httptest.NewServer(r)
 
 	//tests run
 	for _, tt := range tests {
